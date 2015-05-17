@@ -1,0 +1,14 @@
+{
+  "name": "common-framework",
+  "version": "1.0.0",
+  "description": "framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "framework"
+  ],
+  "author": "jinks",
+  "license": "ISC"
+}

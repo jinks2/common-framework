@@ -1,7 +1,8 @@
-;(function () {
-var W3C = window.dispatchEvent; //IE9开始支持
+;(function (global, DOC) {
+var W3C = DOC.dispatchEvent; //IE9开始支持
+var html = DOC.documentElement;
 var noop = function() {}; //一个空函数
-window.$ = {};
+global.$ = {};
 
 /**
  * 字符输出类型
@@ -90,7 +91,6 @@ function isArrayLike(o) {
   }
   return false;
 };
-]
 
 /**
  * 类型判断
@@ -157,15 +157,60 @@ var bind = W3C ? function (ele, type, fn, phase) {
  * @param [Function]: 回调
  * @param [Boolean]: 捕获判断，默认false冒泡
  */
- var unbinf = W3C ? function (ele, type, fn, phase) {
+ var unbind = W3C ? function (ele, type, fn, phase) {
    ele.removeEventListener(type, fn || noop, !!phase);
  } : function(ele, type, fn) {
    ele.detachEvent && elem.detachEvent('on' + type, fn || noop);
  };
 
 //==========domReady机制==========
+var readyList = [],readyFn, readyState = W3C ? 'DOMContentLoaded' : 'readystatechange';
+//添加函数保障DOM树建立完成之后调用
+function ready(fn) {
+  readyList ? readyList.push(fn) : fn();
+};
+//依次调用readyList;
+function fireReady() {
+  for (var i = 0, fn; fn = readyList[i++];) {
+    fn(); 
+  }
+  readyList = null;
+  fireReady = noop; //避免IE下可能的两次调用
+};
+//兼容旧版IE, 判断DOM树是否建完
+function doScrollCheck() {
+  try {
+    html.doScroll('left');
+    fireReady();
+  } catch(e) {
+    setTimeout(doScrollCheck);
+  }
+};
+//FireFox 3.6之前不存在readyState
+if(!DOC.readyState) {
+  var readyState = DOC.readyState = DOC.body ? 'complete' : 'loading';
+}
+if(DOC.readyState === 'complete') {
+  fireReady();
+} else {
+  //绑定loaded事件
+  bind(DOC, readyState, readyFn = function () {
+    if(W3C || DOC.readyState === 'interactive' || DOC.readyState === 'complete') {
+      fireReady();
+    }
+  });
+  if(html.doScroll) { 
+    try { //如果跨域会报错，那证明存在两个窗口
+      if (global.eval === parent.eval) doScrollCheck();
+    } catch (e) {
+      doScrollCheck()
+    }
+  }
+}
 
-var readyList = [],readyFn, ready = W3C ? 'DOMContentLoaded' : 'readystatechange';
+
+
+
 
 
 
@@ -174,9 +219,11 @@ mix($, {
   slice: slice,
   isArray: isArray,
   isArrayLike: isArrayLike,
-  type, type
-  bind: bind
+  type, type,
+  bind: bind,
+  unbind: unbind,
+  ready: ready
+
 });
 
-
-}());
+}(window, window.document));

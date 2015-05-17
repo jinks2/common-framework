@@ -10,23 +10,16 @@
 
       }
     </style>
+
 </head>
 <body>
 
-<script type="text/javascript" src="index.js"></script>
-<script type="text/javascript">
-function test(obj) {
-    return isFinite(obj.length) && obj.item;
-
-}
-document.onreadystatechange = function () {
-    console.log('test');
-    console.log(document.readyState);
-}
-  document.addEventListener("DOMContentLoaded", function(event) {
-    console.log("DOM fully loaded and parsed");
-  });
-
-</script>
+    <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript">
+     $.ready(function () {
+        console.log(document.readyState);
+     })
+     console.log(document.readyState);
+    </script>
 </body>
 </html>

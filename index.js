@@ -78,23 +78,13 @@ function isArrayLike(o) {
   return false;
 };
 
-/**
- * 判断函数
- * @param {Function}
- * @return {Boolean}
- */
-function isFunction(fn) {
-  //除去影响可能'[function','function'判断的字符,节点,数组,arguments等
-  return !!fn && typeof fn != 'string' && !fn.nodeName
-  && fn.constructor != Array && /^[\s[]?function/.test(fn + '');
-}
+
 
 mix($, {
   mix: mix,
   slice: slice,
   isArray: isArray,
   isArrayLike: isArrayLike,
-  isFunction: isFunction,
 });
 
 

@@ -1,5 +1,18 @@
 ;(function () {
 var W3C = window.dispatchEvent; //IE9开始支持
+var Types = {
+    '[object HTMLDocument]': 'Document',
+    '[object HTMLCollection]': 'NodeList',
+    '[object NodeList]': 'NodeList',
+    '[object StaticNodeList]': 'NodeList', //IE
+    '[object CSSRuleList]': 'CSSRuleList',
+    '[object StyleSheetList]': 'StyleSheetList',
+    '[object DOMWindow]': 'Window',
+    '[object global]': 'Window',
+    'null': 'Null',
+    'NaN': 'NaN',
+    'undefined': 'Undefined'
+};
 
 /**
  * 对象扩展
@@ -7,6 +20,15 @@ var W3C = window.dispatchEvent; //IE9开始支持
  * @return {Object}
  */
 window.$ = {};
+
+/**
+ * 字符输出类型
+ * @param {All}
+ * @return {String}
+ */
+function ToString(o) {
+  return Object.prototype.toString.call(o);
+};
 
 function mix(target, source) {
   var args = [].slice.call(arguments), i = 1, len = args.length,
@@ -51,7 +73,7 @@ var slice =  W3C ? function (nodes, start, end) {
  * @return {Boolean}
  */
 function isArray(o) {
-  if(Object.prototype.toString.call(o) === '[object Array]') return true;
+  if(ToString(o) === '[object Array]') return true;
   return false;
 };
 
@@ -62,7 +84,7 @@ function isArray(o) {
  */
 function isArrayLike(o) {
   if(o && typeof o === 'object') {
-    var len = o.length, str = Object.prototype.toString.call(o);
+    var len = o.length, str = ToString.call(o);
     if(len >= 0 && +len === len && !(len % 1)) {  //判断非负整数
       try {
         if(/Object|Array|Argument|NodeList|HTMLCollection|CSSRuleList/.test(str)) {
@@ -78,6 +100,27 @@ function isArrayLike(o) {
   return false;
 };
 
+function type(o, str) {
+  var result = Types[(o == null || o !== o) ? o : ToString(o)] 
+  || o.nodeName;
+  if(result == void 0) {
+    //兼容旧版本与处理个别情况
+    if(o == o.document && o.document != o) {
+      result = 'Window';
+    } else if(o.nodeType === 9) {
+      result = 'Document';
+    } else if(o.callee) {
+      result = 'Arguments';
+    } else {
+      result = ToString(o).slice(8, -1);
+    }
+  }
+  if(str) {
+    return str === result;
+  }
+  return result;
+}
+
 
 
 mix($, {
@@ -85,6 +128,7 @@ mix($, {
   slice: slice,
   isArray: isArray,
   isArrayLike: isArrayLike,
+  type, type
 });
 
 

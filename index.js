@@ -3,7 +3,7 @@ var W3C = window.dispatchEvent; //IE9开始支持
 
 /**
  * 对象扩展
- * @param {object}
+ * @param {object, [object], [boolean]}
  * @return {object}
  */
 window.$ = {};
@@ -27,7 +27,7 @@ function mix(target, source) {
 
 /**
  * 数组化
- * @param {ArrayLike} nodes 要处理的类数组对象
+ * @param {ArrayLike, [number], [number]} nodes 要处理的类数组对象
  * @return {Array}
  */
 var slice =  W3C ? function (nodes, start, end) { 
@@ -53,12 +53,38 @@ var slice =  W3C ? function (nodes, start, end) {
 function isArray(o) {
   if(Object.prototype.toString.call(o) === '[object Array]') return true;
   return false;
-}
+};
+
+/**
+ * 判断类数组: 只让节点集合，纯数组，arguments与拥有非负整数的length属性的纯JS对象通过
+ * @param {ArrayLike}
+ * @return {boolean}
+ */
+function isArrayLike(o) {
+  if(o && typeof o === 'object') {
+    var len = o.length;
+    if(len >= 0 && +len === len && !(len % 1)) {  //判断非负整数
+      try {//Argument,Array等原生对象length属性不可遍历
+        if ({}.propertyIsEnumerable.call(o, 'length') === false) {
+          //array, arguments 判断
+           return Array.isArray(o) || /^\s?function/.test(o.callee); 
+        }
+        //拥有length的对象,NodeList,CSSRuleList(可以用tem判断)
+        return true;
+      } catch(e) {
+        //IE的NodeList直接抛错
+        return true;
+      }
+    }
+  }
+  return false;
+};
 
 mix($, {
   mix: mix,
   slice: slice,
-  isArray: isArray
+  isArray: isArray,
+  isArrayLike: isArrayLike,
 });
 
 

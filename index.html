@@ -19,6 +19,14 @@ function test(obj) {
     return isFinite(obj.length) && obj.item;
 
 }
+document.onreadystatechange = function () {
+    console.log('test');
+    console.log(document.readyState);
+}
+  document.addEventListener("DOMContentLoaded", function(event) {
+    console.log("DOM fully loaded and parsed");
+  });
+
 </script>
 </body>
 </html>

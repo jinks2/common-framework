@@ -1,8 +1,9 @@
 ;(function (global, DOC) {
+var $$ = global.$; //保存已有同名变量
 var W3C = DOC.dispatchEvent; //IE9开始支持
 var html = DOC.documentElement;
 var noop = function() {}; //一个空函数
-global.$ = {};
+var moduleClass = "frame" + (new Date - 0);
 
 /**
  * 字符输出类型
@@ -113,11 +114,10 @@ function isArrayLike(o) {
 };
 
 function type(o, str) {
-  var result = Types[(o == null || o !== o) ? o : ToString(o)] 
-  || o.nodeName;
+  var result = Types[(o == null || o !== o) ? o : ToString(o)] || o.nodeName;
   if(result == void 0) {
     //兼容旧版本与处理个别情况
-    //IE8以下，window == dpcument ->true, document == window -> false
+    //IE8以下，window == document ->true, document == window -> false
     if(o == o.document && o.document != o) {
       result = 'Window';
     } else if(o.nodeType === 9) {
@@ -208,18 +208,53 @@ if(DOC.readyState === 'complete') {
   }
 }
 
+//==========加载系统==========
+function getCurrentScript(base) {
+  var stack;
+  try{
+    a.b.c();
+  } catch(e) {//safari的错误对象只有line,sourceId,sourceURL
+    stack = e.stack; //获取或设置作为包含堆栈跟踪帧的字符串的错误堆栈;包含地址
+    if(!stack && window.opera) {
+      //opera 9没有e.stack,但有e.Backtrace,但不能直接取得,需要对e对象转字符串进行抽取
+      stack = (String(e).match(/of linked script \S+/g) || []).join(" ");
+    }
+  }
+  if(stack) {
+    stack = stack.split(/getCurrentScript\s*[@|()]/g).pop();//获取要处理的主要部分
+    stack = stack.split(/\n/).shift().replace(/[)]/, "");//去掉换行符及可能的')'
+    return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
+  }
+  //动态加载时节点都插入head中，所有只在head标签中查找
+  var nodes = (base ? document : head).getElementsByTagName('script');
+  for(var i = nodes.length, node; node = nodes[--i]) {
+    if((base || node.className === moduleClass) && node.readyState === 'interactive') {
+      return node.className = node.src;
+    }
+  }
+};
 
 
 
+/*
+var _frame = global.frame;
+function noConfict(deep) {
+  if(deep && global.frame) {
+    global.frame = _frame;
+  }
+  return frame;
+}
 
+*/
 
+global.$ = {};
 
 mix($, {
   mix: mix,
   slice: slice,
   isArray: isArray,
   isArrayLike: isArrayLike,
-  type, type,
+  type: type,
   bind: bind,
   unbind: unbind,
   ready: ready

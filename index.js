@@ -214,7 +214,7 @@ mix($, {
   var url = cur.replace(/[?#].*/,'');
   //插件方法
   kernel.plugin = {};
-  //
+  //require 的别名机制
   kernel.alias = {};
   //获取基本路径
   basePath = kernel.base = url.slice(0, url.lastIndexOf('/') + 1);
@@ -229,7 +229,7 @@ mix($, {
   kernel.level = 9;
 }());
 
-//
+//别名方法
 kernel.plugin['alias'] = function (val) {
   var maps = kernel.alias;
   for (var prop in val) {
@@ -247,6 +247,111 @@ kernel.plugin['alias'] = function (val) {
 "Boolean,Number,String,Function,Array,Date,RegExp,Window,Document,Arguments,NodeList".replace(rword, function(name) {
     Types["[object " + name + "]"] = name;
 });
+
+
+//==========加载系统==========
+var loadings = []; //正在加载中的模块列表
+
+//Object(modules[id]).state拥有如下值 
+// undefined  没有定义
+// 1(send)    已经发出请求
+// 2(loading) 已经被执行但还没有执行完成，在这个阶段define方法会被执行
+// 3(loaded)  执行完毕，通过onload/onreadystatechange回调判定，在这个阶段checkDeps方法会执行
+// 4(execute)  其依赖也执行完毕, 值放到exports对象上，在这个阶段fireFactory方法会执行
+var modules = $.modules = {
+  ready: {
+    exports: $
+  },
+  frame: {
+    state: 2,
+    exports: $
+  }
+}
+//获得当前script脚本路径
+function getCurrentScript(base) {
+  var stack;
+  try{
+    a.b.c();
+  } catch(e) {//safari的错误对象只有line,sourceId,sourceURL
+    stack = e.stack; //获取或设置作为包含堆栈跟踪帧的字符串的错误堆栈;包含地址
+    if(!stack && window.opera) {
+      //opera 9没有e.stack,但有e.Backtrace,但不能直接取得,需要对e对象转字符串进行抽取
+      stack = (String(e).match(/of linked script \S+/g) || []).join(" ");
+    }
+  }
+  if(stack) {
+    stack = stack.split(/getCurrentScript\s*[@|()]/g).pop();//获取要处理的主要部分
+    stack = stack.split(/\n/).shift().replace(/[)]/, "");//去掉换行符及可能的')'
+    return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
+  }
+  //动态加载时节点都插入head中，所有只在head标签中查找
+  var nodes = (base ? document : head).getElementsByTagName('script');
+  for(var i = nodes.length, node; node = nodes[--i];) {
+    if((base || node.className === moduleClass) && node.readyState === 'interactive') {
+      return node.className = node.src;
+    }
+  }
+};
+//转换ID为URL,再调用
+function loadJSCSS() {
+
+};
+//检测依赖安装情况
+function checkDeps() {
+
+};
+
+/**
+ * 请求模块
+ * @param {String | Array} 模块列表
+ * @param {Function} 模块工厂
+ * @param [String] 父路径
+ * @return {api}
+ */
+window.require = $.reuqire = function(list, factory, parent) {
+  //检测依赖是否都为2，保存依赖模块返回值
+  var deps = {}, args = [],
+  //需安装的模块数,已安装的模块数
+      dn = 0, cn = 0, 
+      id = parent || 'callback' + setTimeout(1),
+      parent = parent || basePath;
+  String(list).replace(rword, function (el) {
+    //获取完整url
+    var url = loadJSCSS(el, parent);
+    if(url) {
+      dn++;
+      //如果模块已经安装
+      if(modules[url] && modules[url].state === 2) {
+        cn++;
+      }
+      //如果依赖检测中还没有，则加入
+      if(!deps[url]) {
+        args.push(url);
+        deps[url] = true;
+      }
+    }
+  });
+  //创建一个对象用于记录模块加载情况和其他信息
+  modules[id] = {
+    id: id,
+    factory: factory,
+    deps: deps,
+    args: args,
+    state: 1
+  };
+  //如果需要安装的等于已经安装好的安装到框架中
+  if(dn === cn) {
+    fireFactory(id, args, factory);
+  } else {
+    //否则放到检测队列中，等待checkDeps处理
+    loadings.unshift(id);
+  }
+  checkDeps();
+};
+//
+function fireFactory(id, dps, factory) {
+
+};
 
 //==========domReady机制==========
 var readyList = [],readyFn, readyState = W3C ? 'DOMContentLoaded' : 'readystatechange';
@@ -292,54 +397,6 @@ if(DOC.readyState === 'complete') {
     }
   }
 }
-
-//==========加载系统==========
-function getCurrentScript(base) {
-  var stack;
-  try{
-    a.b.c();
-  } catch(e) {//safari的错误对象只有line,sourceId,sourceURL
-    stack = e.stack; //获取或设置作为包含堆栈跟踪帧的字符串的错误堆栈;包含地址
-    if(!stack && window.opera) {
-      //opera 9没有e.stack,但有e.Backtrace,但不能直接取得,需要对e对象转字符串进行抽取
-      stack = (String(e).match(/of linked script \S+/g) || []).join(" ");
-    }
-  }
-  if(stack) {
-    stack = stack.split(/getCurrentScript\s*[@|()]/g).pop();//获取要处理的主要部分
-    stack = stack.split(/\n/).shift().replace(/[)]/, "");//去掉换行符及可能的')'
-    return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
-  }
-  //动态加载时节点都插入head中，所有只在head标签中查找
-  var nodes = (base ? document : head).getElementsByTagName('script');
-  for(var i = nodes.length, node; node = nodes[--i];) {
-    if((base || node.className === moduleClass) && node.readyState === 'interactive') {
-      return node.className = node.src;
-    }
-  }
-};
-
-/**
- * 请求模块
- * @param {String | Array} 模块列表
- * @param {Function} 模块工厂
- * @param [String] 父路径
- * @return {api}
- */
-window.require = $.reuqire = function(list, factory, parent) {
-  //检测依赖是否都为2，保存依赖模块返回值
-  var deps = {}, args = [],
-  //需安装的模块数,已安装的模块数
-      dn = 0, cn = 0, 
-      id = parent || 'callback' + setTimeout(1),
-      parent = parent || basePath;
-  String(list).replace(rword, function (el) {
-    //var url = loadJSCSS(el, parent);
-  });
-
-};
-
-
 
 
 }(window, window.document));

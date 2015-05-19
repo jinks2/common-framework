@@ -7,7 +7,7 @@ var noop = function() {}; //一个空函数
 var moduleClass = "frame" + (new Date - 0);
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
-var basePath,kernel;
+var basePath;
 
 
 /**
@@ -164,7 +164,7 @@ var unbind = W3C ? function (ele, type, fn, phase) {
  * @param {Object} 配置对象
  * @return {frame}
  */
-function config(settings) {
+function kernel(settings) {
   for (var prop in settings) {
     if(!hasOwn.call(settings, p)) {
       continue;
@@ -190,7 +190,7 @@ mix($, {
   bind: bind,
   unbind: unbind,
   ready: ready,
-  config: config
+  config: kernel
 
 });
 
@@ -199,7 +199,20 @@ mix($, {
   if (!cur) {//处理window safari的Error没有stack的问题
       cur = $.slice(document.scripts).pop().src;
   }
+  //去掉版本号或时间戳
   var url = cur.replace(/[?#].*/,'');
+  kernel.plugin = {};
+  kernel.alias = {};
+  //获取基本路径
+  basePath = kernel.base = url.slice(0, url.lastIndexOf('/') + 1);
+  var scripts = DOC.getElementsByTagName('script');
+  for (var i = 0, el; el = scripts[i++];) {
+    if(el.src === cur) {
+      kernel.nick = el.getAttribute('nick') || '$';
+      break;
+    }
+  }
+  kernel.level = 9;
 }());
 
 //==========domReady机制==========

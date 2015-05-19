@@ -8,7 +8,20 @@ var moduleClass = "frame" + (new Date - 0);
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
 var basePath;
-
+var rword = /[^, ]+/g;//切割字符串为一个个小块，以空格或豆号分开它们，结合replace实现字符串的forEach
+var Types = {
+  '[object HTMLDocument]': 'Document',
+  '[object HTMLCollection]': 'NodeList',
+  '[object NodeList]': 'NodeList',
+  '[object StaticNodeList]': 'NodeList', //IE
+  '[object CSSRuleList]': 'CSSRuleList',
+  '[object StyleSheetList]': 'StyleSheetList',
+  '[object DOMWindow]': 'Window',
+  '[object global]': 'Window',
+  'null': 'Null',
+  'NaN': 'NaN',
+  'undefined': 'Undefined'
+};
 
 /**
  * 对象扩展
@@ -95,20 +108,6 @@ function isArrayLike(o) {
  * @param [String]: 比较的类型字符串
  * @return {String/Boolean}: 有比较的话返回判断结果，否则返回类型字符串
  */
- var Types = {
-    '[object HTMLDocument]': 'Document',
-    '[object HTMLCollection]': 'NodeList',
-    '[object NodeList]': 'NodeList',
-    '[object StaticNodeList]': 'NodeList', //IE
-    '[object CSSRuleList]': 'CSSRuleList',
-    '[object StyleSheetList]': 'StyleSheetList',
-    '[object DOMWindow]': 'Window',
-    '[object global]': 'Window',
-    'null': 'Null',
-    'NaN': 'NaN',
-    'undefined': 'Undefined'
-};
-
 function type(o, str) {
   var result = Types[(o == null || o !== o) ? o : toStr.call(o)] || o.nodeName;
   if(result == void 0) {
@@ -192,6 +191,7 @@ function error(str, e) {
 //==========框架初始化==========
 mix($, {
   html: html,
+  rword: rword,
   mix: mix,
   slice: slice,
   isArray: isArray,
@@ -243,6 +243,10 @@ kernel.plugin['alias'] = function (val) {
     }
   }
 };
+//Types类型扩充
+"Boolean,Number,String,Function,Array,Date,RegExp,Window,Document,Arguments,NodeList".replace(rword, function(name) {
+    Types["[object " + name + "]"] = name;
+});
 
 //==========domReady机制==========
 var readyList = [],readyFn, readyState = W3C ? 'DOMContentLoaded' : 'readystatechange';
@@ -315,9 +319,24 @@ function getCurrentScript(base) {
   }
 };
 
-
+/**
+ * 请求模块
+ * @param {String | Array} 模块列表
+ * @param {Function} 模块工厂
+ * @param [String] 父路径
+ * @return {api}
+ */
 window.require = $.reuqire = function(list, factory, parent) {
-  
+  //检测依赖是否都为2，保存依赖模块返回值
+  var deps = {}, args = [],
+  //需安装的模块数,已安装的模块数
+      dn = 0, cn = 0, 
+      id = parent || 'callback' + setTimeout(1),
+      parent = parent || basePath;
+  String(list).replace(rword, function (el) {
+    //var url = loadJSCSS(el, parent);
+  });
+
 };
 
 

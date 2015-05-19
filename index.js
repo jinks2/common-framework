@@ -165,15 +165,15 @@ var unbind = W3C ? function (ele, type, fn, phase) {
  */
 function kernel(settings) {
   for (var prop in settings) {
-    if(!hasOwn.call(settings, p)) {
+    if(!hasOwn.call(settings, prop)) {
       continue;
     }
-    var val = settings[p];
+    var val = settings[prop];
     //这个熟悉是方法的话就执行它，否则就添加
-    if(typeof kernel.plugin[p] === 'function') {
-      kernel.plugin[p](val);
+    if(typeof kernel.plugin[prop] === 'function') {
+      kernel.plugin[prop](val);
     } else {
-      kernel[p] = val;
+      kernel[prop] = val;
     }
   }
   return this;
@@ -251,7 +251,7 @@ kernel.plugin['alias'] = function (val) {
 
 //==========加载系统==========
 var loadings = []; //正在加载中的模块列表
-
+var rdeuce = /\/\w+\/\.\./;
 //Object(modules[id]).state拥有如下值 
 // undefined  没有定义
 // 1(send)    已经发出请求
@@ -293,7 +293,81 @@ function getCurrentScript(base) {
   }
 };
 //转换ID为URL,再调用
-function loadJSCSS() {
+function loadJSCSS(url, parent, ret, shim) {
+  var ret = ret, shim = shim;
+  //如果config已经配置别名
+  if($.config.alias[url]) {
+    ret = $.config.alias[url];
+    if(typeof ret === 'object') {
+      shim = ret;
+      //那么ret就取config中配置的src
+      ret = ret.src;
+    }
+  } else {
+    if(/^(\w+):.*/.test(url)) {//绝对路径
+      ret = url;
+    } else {
+      parent = parent.slice(0, parent.lastIndexOf('/'));
+      var tmp = url.charAt(0); 
+      if(tmp !== '.' && tmp !== '/') {//根路径
+        ret = basePath + url;
+      } else if(url.slice(0, 2) === './') {//当前路径
+        ret = parent + url.slice(1);
+      } else if(tmp === '/') {//当前路径
+        ret = parent + url;
+      } else if(url.slice(0, 2) === '..') {//上级路径
+        ret = parent + '/' + url;
+        //处理路径如：../x/../x
+        while(rdeuce.test(ret)) {
+          ret = ret.replace(rdeuce, '');
+        }
+      } else {
+        $.error('不符合模块标示规则:' + url);
+      }
+    }
+  }
+  var src = ret.replace(/[?#].*/, ''), ext;
+  if(/\.(css|js)/.test(src)) {
+    ext = RegExp.$1;
+  }
+  //默认为js文件
+  if(!ext) {
+    src += '.js';
+    ext = 'js';
+  }
+  if(ext === 'js') {
+    //如果之前没有加载过
+    if(!modules[src]) {
+      modules[src] = {
+        id: src,
+        parent: parent,
+        exports: {}
+      };
+      //shim机制
+      if (shim) {
+        require(shim.deps || '', function () {
+          loadJS(src, function () {
+            modules[src].state = 2;
+            modules[src].exports = typeof shim.exports === 'function' ?
+              shim.exports() : window[shim.exports];
+            checkDeps();
+          })
+        });
+      } else {
+        loadJS(src);
+      }
+    }
+    return src;
+  } else {
+    loadCSS(src);
+  }
+};
+
+function loadJS() {
+
+};
+
+function loadCSS() {
 
 };
 //检测依赖安装情况
@@ -303,21 +377,23 @@ function checkDeps() {
 
 /**
  * 请求模块
- * @param {String | Array} 模块列表
+ * @param {String | Array} 模块列表:允许绝对/相对路径或文件名
  * @param {Function} 模块工厂
  * @param [String] 父路径
  * @return {api}
  */
-window.require = $.reuqire = function(list, factory, parent) {
+window.require = $.require = function(list, factory, parent) {
   //检测依赖是否都为2，保存依赖模块返回值
   var deps = {}, args = [],
   //需安装的模块数,已安装的模块数
       dn = 0, cn = 0, 
       id = parent || 'callback' + setTimeout(1),
+      //如果没有设置parent,默认就是当前路径
       parent = parent || basePath;
   String(list).replace(rword, function (el) {
     //获取完整url
     var url = loadJSCSS(el, parent);
+
     if(url) {
       dn++;
       //如果模块已经安装

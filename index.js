@@ -1,18 +1,14 @@
 ;(function (global, DOC) {
+global.$ = {};
 var $$ = global.$; //保存已有同名变量
 var W3C = DOC.dispatchEvent; //IE9开始支持
 var html = DOC.documentElement;
 var noop = function() {}; //一个空函数
 var moduleClass = "frame" + (new Date - 0);
+var hasOwn = Object.prototype.hasOwnProperty;
+var toStr = Object.prototype.toString;
+var basePath,kernel;
 
-/**
- * 字符输出类型
- * @param {All}
- * @return {String}: 输出类型的字符串
- */
-function ToString(o) {
-  return Object.prototype.toString.call(o);
-};
 
 /**
  * 对象扩展
@@ -66,7 +62,7 @@ var slice =  W3C ? function (nodes, start, end) {
  * @return {Boolean}: 返回判断数组判断
  */
 function isArray(o) {
-  if(ToString(o) === '[object Array]') return true;
+  if(toStr.call(o) === '[object Array]') return true;
   return false;
 };
 
@@ -77,7 +73,7 @@ function isArray(o) {
  */
 function isArrayLike(o) {
   if(o && typeof o === 'object') {
-    var len = o.length, str = ToString.call(o);
+    var len = o.length, str = toStr.call(o);
     if(len >= 0 && +len === len && !(len % 1)) {  //判断非负整数
       try {
         if(/Object|Array|Argument|NodeList|HTMLCollection|CSSRuleList/.test(str)) {
@@ -114,7 +110,7 @@ function isArrayLike(o) {
 };
 
 function type(o, str) {
-  var result = Types[(o == null || o !== o) ? o : ToString(o)] || o.nodeName;
+  var result = Types[(o == null || o !== o) ? o : toStr.call(o)] || o.nodeName;
   if(result == void 0) {
     //兼容旧版本与处理个别情况
     //IE8以下，window == document ->true, document == window -> false
@@ -125,7 +121,7 @@ function type(o, str) {
     } else if(o.callee) {
       result = 'Arguments';
     } else {
-      result = ToString(o).slice(8, -1);
+      result = toStr.call(o).slice(8, -1);
     }
   }
   if(str) {
@@ -157,11 +153,54 @@ var bind = W3C ? function (ele, type, fn, phase) {
  * @param [Function]: 回调
  * @param [Boolean]: 捕获判断，默认false冒泡
  */
- var unbind = W3C ? function (ele, type, fn, phase) {
-   ele.removeEventListener(type, fn || noop, !!phase);
- } : function(ele, type, fn) {
-   ele.detachEvent && elem.detachEvent('on' + type, fn || noop);
- };
+var unbind = W3C ? function (ele, type, fn, phase) {
+  ele.removeEventListener(type, fn || noop, !!phase);
+} : function(ele, type, fn) {
+  ele.detachEvent && elem.detachEvent('on' + type, fn || noop);
+};
+
+/**
+ * 配置框架
+ * @param {Object} 配置对象
+ * @return {frame}
+ */
+function config(settings) {
+  for (var prop in settings) {
+    if(!hasOwn.call(settings, p)) {
+      continue;
+    }
+    var val = settings[p];
+    //这个熟悉是方法的话就执行它，否则就添加
+    if(typeof kernel.plugin[p] === 'function') {
+      kernel.plugin[p](val);
+    } else {
+      kernel[p] = val;
+    }
+  }
+  return this;
+};
+
+//==========框架初始化==========
+mix($, {
+  mix: mix,
+  slice: slice,
+  isArray: isArray,
+  isArrayLike: isArrayLike,
+  type: type,
+  bind: bind,
+  unbind: unbind,
+  ready: ready,
+  config: config
+
+});
+
+(function() {
+  var cur = getCurrentScript(true);
+  if (!cur) {//处理window safari的Error没有stack的问题
+      cur = $.slice(document.scripts).pop().src;
+  }
+  var url = cur.replace(/[?#].*/,'');
+}());
 
 //==========domReady机制==========
 var readyList = [],readyFn, readyState = W3C ? 'DOMContentLoaded' : 'readystatechange';
@@ -227,7 +266,7 @@ function getCurrentScript(base) {
   }
   //动态加载时节点都插入head中，所有只在head标签中查找
   var nodes = (base ? document : head).getElementsByTagName('script');
-  for(var i = nodes.length, node; node = nodes[--i]) {
+  for(var i = nodes.length, node; node = nodes[--i];) {
     if((base || node.className === moduleClass) && node.readyState === 'interactive') {
       return node.className = node.src;
     }
@@ -235,30 +274,11 @@ function getCurrentScript(base) {
 };
 
 
+window.require = $.reuqire = function(list, factory, parent) {
 
-/*
-var _frame = global.frame;
-function noConfict(deep) {
-  if(deep && global.frame) {
-    global.frame = _frame;
-  }
-  return frame;
-}
+};
 
-*/
 
-global.$ = {};
 
-mix($, {
-  mix: mix,
-  slice: slice,
-  isArray: isArray,
-  isArrayLike: isArrayLike,
-  type: type,
-  bind: bind,
-  unbind: unbind,
-  ready: ready
-
-});
 
 }(window, window.document));

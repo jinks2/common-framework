@@ -182,6 +182,7 @@ function kernel(settings) {
 
 //==========框架初始化==========
 mix($, {
+  html: html,
   mix: mix,
   slice: slice,
   isArray: isArray,
@@ -288,7 +289,7 @@ function getCurrentScript(base) {
 
 
 window.require = $.reuqire = function(list, factory, parent) {
-
+  
 };
 
 

@@ -180,6 +180,15 @@ function kernel(settings) {
   return this;
 };
 
+/**
+ * 抛出错误
+ * @param {String} 自定义一个错误
+ * @param {Error} 具体的错误对象构造器
+ */
+function error(str, e) {
+  throw new (e || Error)(str);
+};
+
 //==========框架初始化==========
 mix($, {
   html: html,
@@ -191,7 +200,8 @@ mix($, {
   bind: bind,
   unbind: unbind,
   ready: ready,
-  config: kernel
+  config: kernel,
+  error: error
 
 });
 
@@ -202,7 +212,9 @@ mix($, {
   }
   //去掉版本号或时间戳
   var url = cur.replace(/[?#].*/,'');
+  //插件方法
   kernel.plugin = {};
+  //
   kernel.alias = {};
   //获取基本路径
   basePath = kernel.base = url.slice(0, url.lastIndexOf('/') + 1);
@@ -213,8 +225,24 @@ mix($, {
       break;
     }
   }
+  //状态
   kernel.level = 9;
 }());
+
+//
+kernel.plugin['alias'] = function (val) {
+  var maps = kernel.alias;
+  for (var prop in val) {
+    if(hasOwn.call(val, prop)) {
+      var prevValue = maps[prop];
+      var currValue = val[prop];
+      if(prevValue) {
+        $.error('注意' + prop + '出现重写');
+      }
+      maps[prop] = currValue;
+    }
+  }
+};
 
 //==========domReady机制==========
 var readyList = [],readyFn, readyState = W3C ? 'DOMContentLoaded' : 'readystatechange';

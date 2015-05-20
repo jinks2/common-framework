@@ -10,7 +10,7 @@ define('lang',['frame'], function ($) {
   }
   //不会重写原型
   function method(obj, prop, val) {
-    if(!obj[prop]) {
+    if(true/*!obj[prop]*/) {
       defineProperty(obj, prop, {
         configurable: true,
         enumerable: false,
@@ -64,11 +64,34 @@ define('lang',['frame'], function ($) {
   function endsWith(str) {
     return this.indexOf(str) === this.length - str.length;
   }
+
+  /**
+   * 重复字符串: ES6
+   * @param {Number} 重复次数
+   * @return {String}
+   */
+  function repeat(n) {
+    var s = this, total = '';
+    while (n > 0) {
+      //奇数
+      if(n % 2 === 1) {
+        total += s;
+      }
+      if(n === 1) break;
+      s += s;
+      //除2取商
+      n = n >> 1;
+    }
+    return total;
+  }
+
   //扩展字符串原型
   methods(String.prototype, {
     contains: contains,
     startsWith: startsWith,
-    endsWith: endsWith
-  })
+    endsWith: endsWith,
+    repeat: repeat
+  });
+  
   return $;
 });

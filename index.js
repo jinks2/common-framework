@@ -324,8 +324,8 @@ function getCurrentScript(base) {
     }
   }
   if(stack) {
-    stack = stack.split(/getCurrentScript\s*[@|()]/g).pop();//获取要处理的主要部分
-    stack = stack.split(/\n/).shift().replace(/[)]/, "");//去掉换行符及可能的')'
+    stack = stack.split(/[@ ]/g).pop();//取得最后一行,最后一个空格或@之后的部分
+    stack = stack[0] === "(" ? stack.slice(1, -1) : stack.replace(/\s/, "");//去掉换行符及可能的'('
     return stack.replace(/(:\d+)?:\d+$/i, ""); //去掉行号与或许存在的出错字符起始位置
   }
   //动态加载时节点都插入head中，所有只在head标签中查找
@@ -425,6 +425,7 @@ function loadJS(url, callback) {
   }
   node.src = url;
   head.insertBefore(node, head.firstChild);
+  $.log("正准备加载 " + node.src, 7);
 };
 
 function loadCSS() {
@@ -458,6 +459,14 @@ function checkDeps() {
       loadings.splice(i, 1);
       fireFactory(obj.id, obj.args, obj.factory);
       checkDeps();
+    }
+  }
+};
+//检测是否存在循环依赖
+function checkCycle(deps, nick) {
+  for(var id in deps) {
+    if (deps[id] === true && modules[id].state !== 2 && (id === nick || checkCycle(modules[id].deps, nick))) {
+        return true;
     }
   }
 };
@@ -510,7 +519,72 @@ window.require = $.require = function(list, factory, parent) {
   }
   checkDeps();
 };
-//
+require.config = kernel;
+
+/**
+ * 定义模块
+ * @param {String} 模块id
+ * @param {Array} 依赖列表
+ * @param {Function} 模块工厂
+ * @api public
+ */
+window.define = $.define = function(id, deps, factory) {
+  var args = $.slice(arguments);
+  if(typeof id === 'string') {
+    var _id = args.shift();
+  }
+  //用于文件合并，在标准浏览器中跳过补丁
+  if(typeof args[0] === 'boolean') {
+    if(args[0]) return;
+    args.shift();
+  }
+  //没有依赖列表自动补充空数组
+  if(typeof args[0] === 'function') {
+    args.unshift([]);
+  }
+  //上线合并后能直接得到模块ID,否则寻找当前正在解析中的script节点的src作为模块ID
+  //现在除了safari外，都能直接通过getCurrentScript得到当前执行的script节点，
+  //safari可通过onload+delay闭包组合解决
+  id = modules[id] && modules[id].state >= 1 ? _id : getCurrentScript();
+  if(!modules[name] && _id) {
+    modules[name] = {
+      id: name,
+      factory: factory,
+      state: 1
+    }
+  } 
+  factory = args[1];
+  factory.id = _id; //用于调试
+  factory.delay = function(id) {
+    args.push(id);
+    var isCycle = true;
+    //依赖循环判断
+    try {
+      isCycle = checkCycle(modules[id].deps, id);
+    } catch(e) {
+
+    }
+    if(isCycle) {
+      $.error(id + '模块与之前的某些模块存在依赖循环')
+    }
+    delete factory.delay; //释放内存
+    require.apply(null, args); //0,1,2 -> 1,2,0
+  };
+  if(id) {
+    factory.delay(id, args);
+  } else {
+    factorys.push(factory);
+  }
+};
+$.define.amd = modules;
+
+/**
+ * 执行factory
+ * @param {String} 模块id
+ * @param {Array} 依赖列表
+ * @param {Function} 模块工厂
+ * @api private
+ */
 function fireFactory(id, deps, factory) {
   for(var i = 0, array = [], d; d = deps[i++];) {
     array.push(modules[d].exports);

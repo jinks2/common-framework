@@ -430,10 +430,6 @@ function loadJS(url, callback) {
 function loadCSS() {
 
 };
-//检测依赖安装情况
-function checkDeps() {
-
-};
 //主要用于开发调试
 function checkFail(node, onError, IEhack) {
   var id = node.src; //检查是否是死链
@@ -445,6 +441,24 @@ function checkFail(node, onError, IEhack) {
     $.log('加载' + id + '失败' + onError + ' ' + (!modules[id].state), 7);
   } else {
     return true;
+  }
+};
+//检测依赖安装情况，在用户加载模块之前及script.onload后各执行一次
+//如果模块没有任何依赖或state都为2，调用fireFactory
+function checkDeps() {
+  loop: for(var i = loadings.length, id; id = loadings[--i];) {
+    var obj = modules[id], deps = obj.deps;
+    for(var prop in deps) {
+      if(hasOwn.call(deps, prop) && modules[prop].state !== 2) {
+        continue loop;
+      }
+    }
+    //如果deps是空对象或者模块的状态都是2
+    if(obj.state !== 2) {
+      loadings.splice(i, 1);
+      fireFactory(obj.id, obj.args, obj.factory);
+      checkDeps();
+    }
   }
 };
 
@@ -497,8 +511,17 @@ window.require = $.require = function(list, factory, parent) {
   checkDeps();
 };
 //
-function fireFactory(id, dps, factory) {
-
+function fireFactory(id, deps, factory) {
+  for(var i = 0, array = [], d; d = deps[i++];) {
+    array.push(modules[d].exports);
+  }
+  var module = Object(modules[id]),
+      ret = factory.apply(global, array);
+  module.state = 2;
+  if(ret !== void 0) {
+    modules[id].exports = ret;
+  }
+  return ret;
 };
 
 //==========domReady机制==========

@@ -3,7 +3,7 @@ global.$ = {};
 var $$ = global.$; //保存已有同名变量
 var W3C = DOC.dispatchEvent; //IE9开始支持
 var html = DOC.documentElement;
-var noop = function() {}; //一个空函数
+var head = DOC.head || DOC.getElementsByTagName('head')[0];
 var moduleClass = "frame" + (new Date - 0);
 var hasOwn = Object.prototype.hasOwnProperty;
 var toStr = Object.prototype.toString;
@@ -22,6 +22,10 @@ var Types = {
   'NaN': 'NaN',
   'undefined': 'Undefined'
 };
+var noop = function() {}; //一个空函数
+var loadings = []; //正在加载中的模块列表
+//储存需要绑定ID与factory对应关系的模块
+var factorys = []; //标准浏览器下，先parse的script节点会先onload
 
 /**
  * 对象扩展
@@ -188,6 +192,32 @@ function error(str, e) {
   throw new (e || Error)(str);
 };
 
+function log(str, page, level) {
+   for(var i = 1, show = true; i < arguments.length; i++) {
+     level = arguments[i];
+     if(typeof level === 'number') {
+       show = level <= $.config.level; //9
+     } else if(level === true) {
+       page = true;
+     }
+   }
+   if(show) {
+     if(page === true) {
+       $.require('ready', function() {
+         var div = DOC.createElement('pre');
+         div.className = 'frame_sys_log';
+         div.innerHTML = str + '';
+         DOC.body.appendChild(div);
+       });
+     } else if(window.opera) {
+       opera.postError(str);
+     } else if(global.console && console.info && console.log) {
+       console.log(str);
+     }
+   }
+   return str;
+};
+
 //==========框架初始化==========
 mix($, {
   html: html,
@@ -201,7 +231,8 @@ mix($, {
   unbind: unbind,
   ready: ready,
   config: kernel,
-  error: error
+  error: error,
+  log: log
 
 });
 
@@ -250,7 +281,6 @@ kernel.plugin['alias'] = function (val) {
 
 
 //==========加载系统==========
-var loadings = []; //正在加载中的模块列表
 var rdeuce = /\/\w+\/\.\./;
 //Object(modules[id]).state拥有如下值 
 // undefined  没有定义
@@ -363,8 +393,24 @@ function loadJSCSS(url, parent, ret, shim) {
   }
 };
 
-function loadJS() {
-
+function loadJS(url, callback) {
+  var node = DOC.createElement('script');
+  node.className = moduleClass;
+  node[W3C ? 'onload' : 'onreadystatechange'] = function() {
+    if(W3C || /loaded|complete/i.test(node.readystatechange)) {
+       //factorys里面装着define方法的工厂函数
+      factory = factorys.pop();
+       //
+      factory && factory.delay(node.scr);
+      callback && callback();
+      checkFail(node, false, !W3C) && $.log('已加载成功 ' + url, 7);
+    }
+  }
+  node.onerror = function() {
+    checkFail(node, true);
+  }
+  node.src = url;
+  head.insertBefore(node, head.firstChild);
 };
 
 function loadCSS() {
@@ -373,6 +419,10 @@ function loadCSS() {
 //检测依赖安装情况
 function checkDeps() {
 
+};
+
+function checkFail() {
+  return true;
 };
 
 /**

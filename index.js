@@ -192,26 +192,40 @@ function error(str, e) {
   throw new (e || Error)(str);
 };
 
+/**
+ * 打印信息
+ * @param {All} 用于打印的信息，会转化为字符串
+ * @param [boolean] 是否打印到页面, 默认false
+ * @param {Number} 过滤显示日志
+   0 EMERGENCY 致命错误,框架崩溃
+   1 ALERT 需要立即采取措施进行修复
+   2 CRITICAL 危急错误
+   3 ERROR 异常
+   4 WARNING 警告
+   5 NOTICE 通知用户已经进行到方法
+   6 INFO 更一般化的通知
+   7 DEBUG 调试消息
+   9 config.lvel默认值
+ * @preturn {String}
+ */
 function log(str, page, level) {
    for(var i = 1, show = true; i < arguments.length; i++) {
-     level = arguments[i];
-     if(typeof level === 'number') {
-       show = level <= $.config.level; //9
-     } else if(level === true) {
+     var tmp = arguments[i];
+     if(typeof tmp === 'number') {
+       show = (level = tmp) <= $.config.level; //默认状态9
+     } else if(tmp === true) {
        page = true;
      }
    }
    if(show) {
      if(page === true) {
-       $.require('ready', function() {
-         var div = DOC.createElement('pre');
-         div.className = 'frame_sys_log';
-         div.innerHTML = str + '';
-         DOC.body.appendChild(div);
-       });
+       var div = DOC.createElement('pre');
+       div.className = 'frame_sys_log';
+       div.innerHTML = str + ''; //确保为字符串
+       DOC.body.appendChild(div);
      } else if(window.opera) {
        opera.postError(str);
-     } else if(global.console && console.info && console.log) {
+     } else if(global.console && console.log) {
        console.log(str);
      }
    }
@@ -403,7 +417,7 @@ function loadJS(url, callback) {
        //
       factory && factory.delay(node.scr);
       callback && callback();
-      checkFail(node, false, !W3C) && $.log('已加载成功 ' + url, 7);
+      checkFail(node, false, !W3C) && $.log('已加载成功 ' + url, true, 7);
     }
   }
   node.onerror = function() {
@@ -443,7 +457,6 @@ window.require = $.require = function(list, factory, parent) {
   String(list).replace(rword, function (el) {
     //获取完整url
     var url = loadJSCSS(el, parent);
-
     if(url) {
       dn++;
       //如果模块已经安装

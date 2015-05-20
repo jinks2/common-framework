@@ -37,7 +37,7 @@ define('lang',['frame'], function ($) {
   };
 
   /**
-   * 字符串包含判断
+   * 字符串包含判断: ES6
    * @param {String} 要判断的字符
    * @param {Number} 开始判读的位置，默认为0
    * @return {Boolean}
@@ -47,8 +47,28 @@ define('lang',['frame'], function ($) {
     return IndexOf.call(this, s, position >> 0) !== -1;
   };
 
+  /**
+   * 字符串开始字符判断: ES6
+   * @param {String} 要判断的字符串
+   * @return {Boolean}
+   */
+  function startsWith(str) {
+    return this.indexOf(str) === 0;
+  };
+  
+  /**
+   * 字符串结束字符判断: ES6
+   * @param {String} 要判断的字符串
+   * @return {Boolean}
+   */
+  function endsWith(str) {
+    return this.indexOf(str) === this.length - str.length;
+  }
+  //扩展字符串原型
   methods(String.prototype, {
-    contains: contains
+    contains: contains,
+    startsWith: startsWith,
+    endsWith: endsWith
   })
   return $;
 });

@@ -417,7 +417,7 @@ function loadJS(url, callback) {
        //
       factory && factory.delay(node.scr);
       callback && callback();
-      checkFail(node, false, !W3C) && $.log('已加载成功 ' + url, true, 7);
+      checkFail(node, false, !W3C) && $.log('已加载成功 ' + url, 7);
     }
   }
   node.onerror = function() {
@@ -434,9 +434,18 @@ function loadCSS() {
 function checkDeps() {
 
 };
-
-function checkFail() {
-  return true;
+//主要用于开发调试
+function checkFail(node, onError, IEhack) {
+  var id = node.src; //检查是否是死链
+  node.onload = node.onreadystatechange = node.onerror = null;
+  if(onError || (IEhack && !modules[id].state)) {
+    setTimeout(function() {
+      head.removeChild(node);
+    });
+    $.log('加载' + id + '失败' + onError + ' ' + (!modules[id].state), 7);
+  } else {
+    return true;
+  }
 };
 
 /**

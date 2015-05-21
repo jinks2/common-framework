@@ -93,5 +93,23 @@ define('lang',['frame'], function ($) {
     repeat: repeat
   });
   
+  //==========构建工具方法==========
+  'String,Array,Number,Object'.replace($.rword, function(type) {
+    $[type] = function(pack) {
+      //判断传入的事字符还是对象
+      var isNative = typeof pack === 'string';
+      //获取方法名
+      var methods = isNative ? pack.match($.rword) : Object.keys(pack);
+      methods.forEach(function(method) {
+        $[type][method] = isNative ? function(obj) {
+          //obj为调用的对象,$.slice(arguments, 1)为参数
+          return obj[method].apply(obj, $.slice(arguments, 1));
+        } : pack[method];
+      })
+    }
+  });
+  
+  //字符串的原生方法加扩充方法
+  $.String('charAt,charCodeAt');
   return $;
 });

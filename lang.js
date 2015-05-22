@@ -108,6 +108,7 @@ define('lang',['frame'], function ($) {
       })
     }
   });
+
   /**
    * 获取字符串字节长度
    * @param {String} 目标字符串
@@ -115,17 +116,33 @@ define('lang',['frame'], function ($) {
    * @return {Number} 字节长度
    */
   function byteLen(target, fix) {
-    fix = fix || 2;
+    fix = fix ? fix : 2;
     var str = new Array(fix + 1).join('-');
     //如果是汉子编码，默认用'--'取代
     return target.replace(/[^\x00-\xff]/g, str);
   };
   
+  /**
+   * 字符串截断处理
+   * @param {String} 目标字符串
+   * @param [Number] 限定长度，默认30
+   * @param [String] 添加符号，默认三个点
+   * @return {String} 处理结果
+   */
+  function truncate(target, length, trubcation) {
+    length = length || 30;
+    trubcation = trubcation === void 0 ? '...' : trubcation;
+    return target.length <= length ? String(target) :
+      target.slice(0, length) + trubcation; 
+  };
+
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
+
   //$.String的新构建方法
   $.String({
-    byteLen: byteLen
+    byteLen: byteLen,
+    truncate: truncate
   })
   return $;
 });

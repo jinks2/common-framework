@@ -36,6 +36,22 @@ define('lang',['frame'], function ($) {
     }
   };
 
+  //==========构建工具方法==========
+  'String,Array,Number,Object'.replace($.rword, function(type) {
+    $[type] = function(pack) {
+      //判断传入的事字符还是对象
+      var isNative = typeof pack === 'string';
+      //获取方法名
+      var funcs = isNative ? pack.match($.rword) : Object.keys(pack);
+      funcs.forEach(function(method) {
+        $[type][method] = isNative ? function(obj) {
+          //obj为调用的对象,$.slice(arguments, 1)为参数
+          return obj[method].apply(obj, $.slice(arguments, 1));
+        } : pack[method];
+      })
+    }
+  });
+
   /**
    * 字符串包含判断: ES6
    * @param {String} 要判断的字符
@@ -84,30 +100,6 @@ define('lang',['frame'], function ($) {
     }
     return total;
   }
-
-  //扩展字符串原型
-  methods(String.prototype, {
-    contains: contains,
-    startsWith: startsWith,
-    endsWith: endsWith,
-    repeat: repeat
-  });
-  
-  //==========构建工具方法==========
-  'String,Array,Number,Object'.replace($.rword, function(type) {
-    $[type] = function(pack) {
-      //判断传入的事字符还是对象
-      var isNative = typeof pack === 'string';
-      //获取方法名
-      var methods = isNative ? pack.match($.rword) : Object.keys(pack);
-      methods.forEach(function(method) {
-        $[type][method] = isNative ? function(obj) {
-          //obj为调用的对象,$.slice(arguments, 1)为参数
-          return obj[method].apply(obj, $.slice(arguments, 1));
-        } : pack[method];
-      })
-    }
-  });
 
   /**
    * 获取字符串字节长度
@@ -280,9 +272,18 @@ define('lang',['frame'], function ($) {
   function trim(target) {
     return target.replace(/^\s\s*/g,'').replace(/\s\s*$/g,'');
   };
+  
+  //扩展字符串原型;对于旧浏览器，字符串没有太多需要修复
+  methods(String.prototype, {
+    contains: contains,
+    startsWith: startsWith,
+    endsWith: endsWith,
+    repeat: repeat
+  });
 
-  //$.String的原生方法加扩充方法
-  $.String('charAt,charCodeAt');
+  //$.String的原生方法＋扩充方法
+  $.String('charAt,charCodeAt,concat,indexOf,lastIndexOf,localeCompare,match,' + 'contains,endsWith,startsWith,repeat,' 
+    + 'replace,search,slice,split,substring,toLowerCase,toUpperCase,trim,toJSON');
 
   //$.String的新构建方法
   $.String({
@@ -301,5 +302,50 @@ define('lang',['frame'], function ($) {
     format: format,
     trim: trim
   })
+
+
+ /**
+  * 修补index
+  * @param{String} 要查找的字符
+  * @param[Number] 开始查找的位置，默认为开头
+  * @return {Number} 查找到的位置或－1
+  */
+ function indexOf(item, index) {
+   var len = this.length, i = ~~index;
+   if(i < 0) i += len;
+   for(;i < len; i++) {
+     if(this[i] === item)
+       return i;
+   }
+   return -1;
+ };
+ /**
+  * 修补lastIndexOf
+  * @param{String} 要查找的字符
+  * @param[Number] 开始查找的位置，默认为结尾
+  * @return {Number} 查找到的位置或－1
+  */
+ function lastIndexOf(item, index) {
+   var len = this.length, i = index == null ? len - 1 : index;
+   if(i < 0) i = Math.max(0, n + i);
+   for(; i >= 0; i--) {
+     if(this[i] === item)
+       return i;
+   }
+   return -1;
+ };
+
+ //修复旧浏览器，扩展数组原型;
+  methods(Array.prototype, {
+    indexOf: indexOf,
+    lastIndexOf: lastIndexOf
+  });
+ //$.Array的原生方法
+ //
+ $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse');
+ $.Array({
+
+ });
+
   return $;
 });

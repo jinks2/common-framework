@@ -272,6 +272,15 @@ define('lang',['frame'], function ($) {
     });
   };
 
+  /**
+   * 空格处理: 旧版IE没有trim方法的补充
+   * @param {String}
+   * @return {String}
+   */
+  function trim(target) {
+    return target.replace(/^\s\s*/g,'').replace(/\s\s*$/g,'');
+  };
+
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
 
@@ -289,7 +298,8 @@ define('lang',['frame'], function ($) {
     unescapeHTML: unescapeHTML,
     escapeRegExp: escapeRegExp,
     pad: pad,
-    format: format
+    format: format,
+    trim: trim
   })
   return $;
 });

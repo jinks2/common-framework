@@ -218,6 +218,38 @@ define('lang',['frame'], function ($) {
       .replace(/&gt/g,'>;').replace(/&quot;/g,'"')
       .replace(/&#39;/g,"'");
   }
+
+  /**
+   * 正则转义
+   * @param {String}
+   * @return {String}
+   */
+  function escapeRegExp(target) {
+    return target.replace(/([-.*?^${}()|[\]\/\]])/g,'\\$1');
+  };
+
+  /**
+   * 字符串填充
+   * @param {String} 
+   * @param {Number} 填充后的字符串长度
+   * @param [String|Number] 填充的字符数值/数值，默认0
+   * @param [Boolean] 填充的方向，默认左边
+   * @param [Number] 填充后的进制，默认十进制
+   * @return {String}
+   */
+  function pad(target, n, filling, right, radix) {
+    var str = target.toString(radix || 10);
+    filling = filling || '0';
+    while (str.length < n) {
+      if(!right) {
+        str = filling + str
+      } else {
+        str += filling;
+      }
+    }
+    return str
+  }
+
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
 
@@ -232,7 +264,9 @@ define('lang',['frame'], function ($) {
     stripTags: stripTags,
     stripScripts: stripScripts,
     escapeHTML: escapeHTML,
-    unescapeHTML: unescapeHTML
+    unescapeHTML: unescapeHTML,
+    escapeRegExp: escapeRegExp,
+    pad: pad
   })
   return $;
 });

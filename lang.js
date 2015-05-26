@@ -306,8 +306,8 @@ define('lang',['frame'], function ($) {
 
  /**
   * 修补index
-  * @param{String} 要查找的字符
-  * @param[Number] 开始查找的位置，默认为开头
+  * @param {String} 要查找的字符
+  * @param [Number] 开始查找的位置，默认为开头
   * @return {Number} 查找到的位置或－1
   */
  function indexOf(item, index) {
@@ -319,10 +319,11 @@ define('lang',['frame'], function ($) {
    }
    return -1;
  };
+
  /**
   * 修补lastIndexOf
-  * @param{String} 要查找的字符
-  * @param[Number] 开始查找的位置，默认为结尾
+  * @param {String} 要查找的字符
+  * @param [Number] 开始查找的位置，默认为结尾
   * @return {Number} 查找到的位置或－1
   */
  function lastIndexOf(item, index) {
@@ -335,11 +336,29 @@ define('lang',['frame'], function ($) {
    return -1;
  };
 
+ /**
+  * 数组的标准化修补方法
+  * @param {String} 初始化的变量
+  * @param {String} 执行的函数
+  * @param {String} 返回结果
+  * @return {Function}
+  */
+  function iterator(vars, body, ret) {
+      var fun = 'for(var ' + vars + 'i=0,n = this.length;i < n;i++){' + body.replace('_', '((i in this) && fn.call(scope,this[i],i,this))') + '}' + ret
+      return Function("fn,scope", fun);
+  }
+  
  //修复旧浏览器，扩展数组原型;
   methods(Array.prototype, {
     indexOf: indexOf,
-    lastIndexOf: lastIndexOf
+    lastIndexOf: lastIndexOf,
+    forEach: iterator('','_',''),
+    filter: iterator('r=[],j=0,','if(_)r[j++]=this[i]','return r'),
+    map: iterator('r=[],','r[i]=_','return r'),
+    some: iterator('','if(_)return true','return false'),
+    every: iterator('','if(!_) return false','return true')
   });
+
  //$.Array的原生方法
  //
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse');

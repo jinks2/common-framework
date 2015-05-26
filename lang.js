@@ -136,13 +136,40 @@ define('lang',['frame'], function ($) {
       target.slice(0, length) + trubcation; 
   };
 
+  /**
+   * 驼峰格式
+   * @param {String}
+   * @return {String} 转化后的结果
+   */
+  function camelize(target) {
+    if(target.indexOf('-') < 0 && target.indexOf('_') < 0) {
+      return target; //提前判断，提高getStyle等的效率
+    }
+    //允许开头使用符号
+    return target.replace(/[-_][^-_]/g, function (match) {
+      return match.charAt(1).toUpperCase();
+    });
+  };
+
+  /**
+   * 下划线格式
+   * @param {String}
+   * @return {String}
+   */
+   function underscored(target) {
+     return target.replace(/([a-z\d])([A-Z])/g, '$1_$2')
+       .replace(/\-/g,'_').toLowerCase();
+   }
+
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
 
   //$.String的新构建方法
   $.String({
     byteLen: byteLen,
-    truncate: truncate
+    truncate: truncate,
+    camelize: camelize,
+    underscored: underscored
   })
   return $;
 });

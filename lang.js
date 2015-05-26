@@ -248,7 +248,29 @@ define('lang',['frame'], function ($) {
       }
     }
     return str
-  }
+  };
+
+  /**
+   * format模版
+   * @param {String} 要处理的字符串
+   * @param {String|Object} 分别为数字占位符和对象占位符的形式
+   * @return {String}
+   * @example: format('#{0),#(1)','param1','param2')
+   *           formar('#{name},#{age}',{name:'name',age:0})
+   */
+  function format(str, obj) {
+    var arr = $.slice(arguments, 1);
+    //正则获取#{index}|#{param};
+    //如果前面有\\，表示注释，保留不处理
+    return str.replace(/\\?\#{([^{}]+)\}/gm, function(match, name) {
+      //注意这里第一个\是转义用的
+      if(match.charAt(0) == '\\') return match.slice(1);
+      var index = Number(name);
+      if(index >= 0) return arr[index];
+      if(obj && obj[name] !== void 0) return obj[name];
+      return '';
+    });
+  };
 
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
@@ -266,7 +288,8 @@ define('lang',['frame'], function ($) {
     escapeHTML: escapeHTML,
     unescapeHTML: unescapeHTML,
     escapeRegExp: escapeRegExp,
-    pad: pad
+    pad: pad,
+    format: format
   })
   return $;
 });

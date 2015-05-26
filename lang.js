@@ -159,7 +159,7 @@ define('lang',['frame'], function ($) {
   function underscored(target) {
      return target.replace(/([a-z\d])([A-Z])/g, '$1_$2')
        .replace(/\-/g,'_').toLowerCase();
-  }
+  };
   
   /**
    * 连字符格式
@@ -169,7 +169,7 @@ define('lang',['frame'], function ($) {
   function dasherize(target) {
     return target.replace(/([a-z\d])([A-Z])/g,'$1-$2')
       .replace(/\_/g,'-').toLowerCase();
-  }
+  };
   
   /**
    * 首字母大写
@@ -178,7 +178,7 @@ define('lang',['frame'], function ($) {
    */
   function capitalize(target) {
     return target.charAt(0).toUpperCase() + target.substring(1).toLowerCase();
-  }
+  };
   /**
    * 移除html标签
    * @param {String}
@@ -187,7 +187,7 @@ define('lang',['frame'], function ($) {
   function stripTags(target) {
     //匹配格式<..>,但在对<script>标签时会遗留里面的脚本
     return String(target || '').replace(/<[^>]+>/g,'');
-  }
+  };
 
   /**
    * 移除script标签; 此方法应该在stripTags方法之前调用
@@ -196,8 +196,28 @@ define('lang',['frame'], function ($) {
    */
   function stripScripts(target) {
     return String(target || '').replace(/<script[^>]*>([\S\s]*?)<\/script>/img,'')
-  }
+  };
 
+  /**
+   * html转义
+   * @param {String}
+   * @return {String}
+   */
+  function escapeHTML(target) {
+    return target.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+  /**
+   * html反转义
+   * @param {String}
+   * @return {String}
+   */
+  function unescapeHTML(target) {
+    return target.replace(/&amp;/g,'&').replace(/&lt;/g,'<')
+      .replace(/&gt/g,'>;').replace(/&quot;/g,'"')
+      .replace(/&#39;/g,"'");
+  }
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
 
@@ -210,7 +230,9 @@ define('lang',['frame'], function ($) {
     dasherize: dasherize,
     capitalize: capitalize,
     stripTags: stripTags,
-    stripScripts: stripScripts
+    stripScripts: stripScripts,
+    escapeHTML: escapeHTML,
+    unescapeHTML: unescapeHTML
   })
   return $;
 });

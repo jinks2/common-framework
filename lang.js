@@ -156,10 +156,47 @@ define('lang',['frame'], function ($) {
    * @param {String}
    * @return {String}
    */
-   function underscored(target) {
+  function underscored(target) {
      return target.replace(/([a-z\d])([A-Z])/g, '$1_$2')
        .replace(/\-/g,'_').toLowerCase();
-   }
+  }
+  
+  /**
+   * 连字符格式
+   * @param{String}
+   * @return {String}
+   */
+  function dasherize(target) {
+    return target.replace(/([a-z\d])([A-Z])/g,'$1-$2')
+      .replace(/\_/g,'-').toLowerCase();
+  }
+  
+  /**
+   * 首字母大写
+   * @param {String}
+   * @return {String}
+   */
+  function capitalize(target) {
+    return target.charAt(0).toUpperCase() + target.substring(1).toLowerCase();
+  }
+  /**
+   * 移除html标签
+   * @param {String}
+   * @return {String}
+   */
+  function stripTags(target) {
+    //匹配格式<..>,但在对<script>标签时会遗留里面的脚本
+    return String(target || '').replace(/<[^>]+>/g,'');
+  }
+
+  /**
+   * 移除script标签; 此方法应该在stripTags方法之前调用
+   * @param {String}
+   * @return {String}
+   */
+  function stripScripts(target) {
+    return String(target || '').replace(/<script[^>]*>([\S\s]*?)<\/script>/img,'')
+  }
 
   //$.String的原生方法加扩充方法
   $.String('charAt,charCodeAt');
@@ -169,7 +206,11 @@ define('lang',['frame'], function ($) {
     byteLen: byteLen,
     truncate: truncate,
     camelize: camelize,
-    underscored: underscored
+    underscored: underscored,
+    dasherize: dasherize,
+    capitalize: capitalize,
+    stripTags: stripTags,
+    stripScripts: stripScripts
   })
   return $;
 });

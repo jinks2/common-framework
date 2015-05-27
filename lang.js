@@ -37,7 +37,7 @@ define('lang',['frame'], function ($) {
   };
 
   //==========构建工具方法==========
-  'String,Array,Number,Object'.replace($.rword, function(type) {
+  'String,Array,Number,Object,Date'.replace($.rword, function(type) {
     $[type] = function(pack) {
       //判断传入的事字符还是对象
       var isNative = typeof pack === 'string';
@@ -724,7 +724,7 @@ define('lang',['frame'], function ($) {
   * @param [All] 执行的参数
   * @return {Function} 绑定作用域和参数后的函数
   */
- function bind = function (context) {
+ function bind(context) {
    if(arguments.length < 2 && context == void 0)
      return this;
    var _method = this, args = $.slice(arguments, 1);
@@ -734,12 +734,65 @@ define('lang',['frame'], function ($) {
  };
 
  //修复旧浏览器，扩展函数原型;
-  methods(Function.prototype, {
-    bind: bind
+ methods(Function.prototype, {
+   bind: bind
+ });
+ 
+ //修补几个日期标准方法;在IE6,7中,getYear,setYear方法存在bug
+ if(!Date.now) {
+   Date.now = function() {
+     return +new Date;  //转化为毫秒形式
+   }
+ }
+ if((new Date).getYear() > 1900) {
+   Date.prototype.getYear = function() {
+     return this.getFullYear() - 1900; 
+   }
+   Date.prototype.setYear = function(year) {
+     return this.setFullYear(year); //+1900
+   }
+ }
+ 
+ /**
+  * 日期toISOString方法修复; 返回格式如：2015-05-27T10:39:33.999Z
+  * @return {String}
+  */
+ function toISOString() {
+  //字符化并处理0补全
+   var pad = function (num) {
+     var r = String(num);
+     if(r.length == 1)
+       r = '0' + r;
+     return r;
+   };
+   return this.getUTCFullYear() + '-'
+     + pad(this.getUTCMonth() + 1) + '-'
+     + pad(this.getUTCDate()) + 'T'
+     + pad(this.getUTCHours()) + ':'
+     + pad(this.getUTCMinutes()) + ':'
+     + pad(this.getUTCSeconds()) + '.'
+     + String((this.getUTCMilliseconds() / 1000).toFixed(3))
+     .slice(2, 5) + 'z';
+ }
+
+
+ //修复旧浏览器，扩展函数原型;
+ methods(Date.prototype, {
+   toISOString: toISOString,
+   toJSON: toISOString
  });
 
+ /**
+  */
+ 
 
+ $.Date({
 
+ });
 
  return $;
 });
+
+
+
+

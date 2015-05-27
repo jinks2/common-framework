@@ -100,6 +100,14 @@ define('lang',['frame'], function ($) {
     }
     return total;
   }
+  
+  //扩展字符串原型;对于旧浏览器，字符串没有太多需要修复
+  methods(String.prototype, {
+    contains: contains,
+    startsWith: startsWith,
+    endsWith: endsWith,
+    repeat: repeat
+  });
 
   /**
    * 获取字符串字节长度
@@ -272,14 +280,6 @@ define('lang',['frame'], function ($) {
   function trim(target) {
     return target.replace(/^\s\s*/g,'').replace(/\s\s*$/g,'');
   };
-  
-  //扩展字符串原型;对于旧浏览器，字符串没有太多需要修复
-  methods(String.prototype, {
-    contains: contains,
-    startsWith: startsWith,
-    endsWith: endsWith,
-    repeat: repeat
-  });
 
   //$.String的原生方法＋扩充方法
   $.String('charAt,charCodeAt,concat,indexOf,lastIndexOf,localeCompare,match,' + 'contains,endsWith,startsWith,repeat,' 
@@ -357,6 +357,7 @@ define('lang',['frame'], function ($) {
   * @param {Function} 回调函数
   * @param [All] 可选第一个参数
   * @param [Object|this] 作用域
+  * @return {All}
   */
  function reduce(fn, lastResult, scope) {
    if(this.length === 0)return lastResult;
@@ -373,12 +374,13 @@ define('lang',['frame'], function ($) {
   * @param {Function} 回调函数
   * @param [All] 可选第一个参数
   * @param [Object|this] 作用域
+  * @return {All}
   */
  function reduceRight(fn, lastResult, scope) {
    var arr = this.contat().reverse();
    return arr.reduce(fn, lastResult, scope);
  };
-  
+ 
  //修复旧浏览器，扩展数组原型;
  methods(Array.prototype, {
     indexOf: indexOf,
@@ -392,11 +394,48 @@ define('lang',['frame'], function ($) {
     reduceRight: reduceRight
  });
 
- //$.Array的原生方法
- //
- $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse');
- $.Array({
+ /**
+  * 数组包含判断
+  * @param {Array}
+  * @param {All} 要判断的值
+  * @return {Boolean} 判断的布尔值
+  */
+ function contains(target, item) {
+   return target.indexOf(item) > -1;
+ };
+ 
+ /**
+  * 移除指定位置
+  * @param {Array} 
+  * @param {Number} 指定位置
+  * @return {Boolean}
+  */
+ function removeAt(target, index) {
+   return !!target.splice(index, 1).length;
+ };
+ 
+ /**
+  * 移除制定项
+  * @param {Array}
+  * @param {All}
+  * @param [Number] 开始的位置
+  * @return {Boolean}
+  */
+ function remove(target, item, start) {
+   var index = target.indexOf(item, start);
+   if(~index)
+     return removeAt(target, index);
+   return false;
+ };
 
+ //$.Array的原生方法
+ $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
+   + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');
+ //$.Array的新构建方法
+ $.Array({
+   contains: contains,
+   removeAt: removeAt,
+   remove: remove
  });
 
   return $;

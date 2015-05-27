@@ -82,8 +82,7 @@
    * @return {Boolean}: 返回判断数组判断
    */
   function isArray(o) {
-    if(toStr.call(o) === '[object Array]') return true;
-    return false;
+    return toStr.call(o) === '[object Array]';
   };
 
   /**
@@ -107,6 +106,12 @@
       }
     }
     return false;
+  };
+
+  /**
+   */
+  function isFunction(fn) {
+    return toStr.call(fn) === '[object Function]'; 
   };
 
   /**
@@ -255,6 +260,7 @@
     slice: slice,
     isArray: isArray,
     isArrayLike: isArrayLike,
+    isFunction: isFunction,
     type: type,
     bind: bind,
     unbind: unbind,

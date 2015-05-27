@@ -516,7 +516,45 @@ define('lang',['frame'], function ($) {
        result.push(prop);
    });
    return result;
- }
+ };
+
+ /**
+  * 数组特定条件分组
+  * @param {Array}
+  * @param {Function|String} 回调的用于分组一般数组; 数组分组对象数组
+  * @return {Object} 返回分组后的对象
+  */
+ function groupBy(target, val) {
+   var result = {};
+   var iterator = $.isFunction(val) ? val : function(obj) {
+     return obj[val];
+   };
+   target.forEach(function(item, index) {
+     var key = iterator(item, index);
+     (result[key] || (result[key] = [])).push(item);
+   })
+   return result;
+ };
+
+ /**
+  * 对象数组根据指定条件对选中的属性值排序
+  * @param {Array}
+  * @paran {Function} 用于筛选对象属性
+  * @param [null|Object]
+  * @return {Array} 筛选的属性值组成的数组
+  */
+ function sortBy(target, fn, scope) {
+   var arr = target.map(function(item, index) {
+     return {
+       el: item,
+       re: fn.call(scope, item, index)
+     }
+   }).sort(function(left, right) {
+     var a = left.re, b = right.re;
+     return a < b ? -1 : a > b ? 1 : 0;
+   });
+   return pluck(arr,'el');
+ };
 
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
@@ -531,7 +569,9 @@ define('lang',['frame'], function ($) {
    flatten: flatten,
    unique: unique,
    compact: compact,
-   pluck: pluck
+   pluck: pluck,
+   groupBy: groupBy,
+   sortBy: sortBy
  });
 
   return $;

@@ -860,7 +860,3 @@ define('lang',['frame'], function ($) {
 
  return $;
 });
-
-
-
-

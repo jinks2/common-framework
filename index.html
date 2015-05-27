@@ -13,6 +13,7 @@
     </style>
 <script type="text/javascript" src="frame.js"></script>
 <script type="text/javascript">
+  //example
   require.config({
     alias:{
       'jquery': {
@@ -21,8 +22,13 @@
       }
     }
   });
-  require('lang', function () {
-    
+
+  require('lang', function() {
+    console.log('add lang.js');
+  });
+  
+  require('brower', function(args) {
+    console.log('add brower.js',args);
   });
 </script>
 

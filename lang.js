@@ -481,7 +481,6 @@ define('lang',['frame'], function ($) {
    var result = [],len = target.length, i ,j;
    loop: for(i = 0 ;i < len; i++) {
      for(j = i + 1; j < len; j++) {
-      console.log(target[i],target[j]);
        if(target[j] === target[i])
         continue loop;
      }
@@ -556,6 +555,49 @@ define('lang',['frame'], function ($) {
    return pluck(arr,'el');
  };
 
+ /**
+  * 取并集
+  * @param {Array}
+  * @param {Array}
+  * @return {Array}
+  */
+ function union(target, array) {
+   return unique(target.concat(array))
+ };
+
+ /**
+  * 取交集
+  * @param {Array}
+  * @param {Array}
+  * @return {Array}
+  */
+ function intersect(target, array) {
+   return target.filter(function(item) {
+     return ~array.indexOf(item);
+   })
+ };
+ 
+ /**
+  * 取补集
+  * @param {Array}
+  * @param {Array}
+  * @return {Array}
+  */
+ function diff(target, array) {
+   var i, j, len = array.length;
+   //由于对target使用splice,所有length是个变值
+   for(i = 0; i < target.length; i++) {
+     for(j = 0; j < len; j++) {
+       if(target[i] === array[j]) {
+         target.splice(i,1);
+         i --;
+         break;
+       }
+     }
+   }
+   return target;
+ };
+
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
    + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');
@@ -571,7 +613,10 @@ define('lang',['frame'], function ($) {
    compact: compact,
    pluck: pluck,
    groupBy: groupBy,
-   sortBy: sortBy
+   sortBy: sortBy,
+   union: union,
+   intersect: intersect,
+   diff: diff
  });
 
   return $;

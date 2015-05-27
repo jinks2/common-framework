@@ -616,6 +616,27 @@ define('lang',['frame'], function ($) {
    return Math.max.apply(null, target);
  };
 
+ //修补IE6，7下unshift不返回数组长度问题
+ if([].unshift(1) !== 1) {
+   var _unshift = Array.prototype.unshift;
+   Array.prototype.unshift = function() {
+     _unshift.apply(this, arguments);
+     return this.length;
+   }
+ }
+
+ //修补IE6，7，8下splice在一个参数时默认第二参数为0，其他浏览器则为数组长度
+ if([1,2,3].splice(1).length == 0) {//IE6，7，8下一个元素也没有删除
+   var _splice = Array.prototype.splice;
+   Array.prototype.splice = function(a) {
+     if(arguments.length == 1) {
+       return _splice.call(this, a, this.length);
+     } else {
+       return _splice.apply(this, arguments);
+     }
+   }
+ };
+
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
    + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');

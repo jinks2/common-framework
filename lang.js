@@ -489,6 +489,34 @@ define('lang',['frame'], function ($) {
    }
    return result;
  };
+ 
+ /**
+  * 过滤数组中的null与undefined;包括空值
+  * @param {Array}
+  * @param {Array}
+  */
+ function compact(target) {
+   return target.filter(function(item) {
+     return item != null;
+   })
+ };
+
+ /**
+  * 对象数组取特定属性值
+  * @param {Array}
+  * @param {String} 属性名
+  * @return {Array} 由属性值组成的数组
+  */
+ function pluck(target, name) {
+   var result = [], prop;
+   target.forEach(function(item) {
+     if(typeof item != 'object') return;
+     prop = item[name];
+     if(prop !== null)
+       result.push(prop);
+   });
+   return result;
+ }
 
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
@@ -501,7 +529,9 @@ define('lang',['frame'], function ($) {
    shuffle: shuffle,
    random: random,
    flatten: flatten,
-   unique: unique
+   unique: unique,
+   compact: compact,
+   pluck: pluck
  });
 
   return $;

@@ -718,6 +718,28 @@ define('lang',['frame'], function ($) {
  });
  $.Number(NumberPack);
     
+ /**
+  * 函数bind方法修复
+  * @param {this|Object} 函数执行的上下文
+  * @param [All] 执行的参数
+  * @return {Function} 绑定作用域和参数后的函数
+  */
+ function bind = function (context) {
+   if(arguments.length < 2 && context == void 0)
+     return this;
+   var _method = this, args = $.slice(arguments, 1);
+   return function() {
+     return _method.apply(context, args.concat.apply(args, arguments));
+   };
+ };
 
-  return $;
+ //修复旧浏览器，扩展函数原型;
+  methods(Function.prototype, {
+    bind: bind
+ });
+
+
+
+
+ return $;
 });

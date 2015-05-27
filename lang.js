@@ -455,6 +455,41 @@ define('lang',['frame'], function ($) {
    return target[Math.floor(Math.random() * target.length)];
  }
 
+ /**
+  * 数组平坦化处理
+  * @param {Array}
+  * @return {Array} 处理后的一维数组
+  */
+ function flatten(target) {
+   var result = [];
+   target.forEach(function(item) {
+     if(Array.isArray(item)) {
+       result = result.concat(flatten(item));
+     } else {
+       result.push(item);
+     }
+   })
+   return result;
+ };
+
+ /**
+  * 数组去重: 算法类似冒泡排序，注意这是个浅去重
+  * @param {Array}
+  * @return {Array} 去重后的新数组
+  */
+ function unique(target) {
+   var result = [],len = target.length, i ,j;
+   loop: for(i = 0 ;i < len; i++) {
+     for(j = i + 1; j < len; j++) {
+      console.log(target[i],target[j]);
+       if(target[j] === target[i])
+        continue loop;
+     }
+     result.push(target[i]);
+   }
+   return result;
+ };
+
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
    + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');
@@ -464,7 +499,9 @@ define('lang',['frame'], function ($) {
    removeAt: removeAt,
    remove: remove,
    shuffle: shuffle,
-   random: random
+   random: random,
+   flatten: flatten,
+   unique: unique
  });
 
   return $;

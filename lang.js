@@ -688,19 +688,21 @@ define('lang',['frame'], function ($) {
    return Math.abs(target - n1) < Math.abs(target - n2) ? n1 : n2;
  }
 
- /**
-  * 按照指定小数位四舍五入
-  * @param {Number} 要处理的数值
-  * @param [Number] 小数位，默认0，负数忽略
-  * @return {Number}
-  */
- function round(target, base) {
-   if(base && base >= 0) {
-     base = Math.pow(10, base);
-     return Math.round(target * base) / base;
-   } else {
-     return Math.round(target);
-   }
+ //修补toFixed在一些浏览器中的失效情况
+ if(0.9.toFixed(0) !== '1') {
+   Number.prototype.toFixed = function(n) {
+     var power = Math.pow(10, n);
+     var fixed = (Math.round(this * power) / power).toString();
+     if(n == 0)
+       return fixed;
+     //补全0;
+     if(fixed.indexOf('.') < 0)
+       fixed += '.';
+     var padding = n + 1 - (fixed.length - fixed.indexOf('.'));
+     for(var i = 0; i < padding; i++)
+       fixed += '0';
+     return fixed;
+   };
  }
 
  //$.Number的原生方法
@@ -709,8 +711,7 @@ define('lang',['frame'], function ($) {
  //由于Math方法不是直接在Number原型上的，这里利用NumberPack
  NumberPack = {
    limit: limit,
-   nearer: nearer,
-   round: round
+   nearer: nearer
  };
  'abs,acos,asin,atan,atan2,ceil,cos,exp,floor,log,pow,sin,sqrt,tan'.replace($.rword, function(name) {
    NumberPack[name] = Math[name];

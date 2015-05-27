@@ -428,6 +428,33 @@ define('lang',['frame'], function ($) {
    return false;
  };
 
+ /**
+  * 数组无序重排; 若不想影响原数组，可以先拷贝一份出来操作.
+  * @param {Array}
+  * @return {Array}
+  * @参考: http://bost.ocks.org/mike/shuffle/
+  */
+ function shuffle(target) {
+   var rand ,tmp ,len = target.length;
+   for(; len > 0; ) {
+     rand = parseInt(Math.random() * len),
+     //从后向前
+     tmp = target[--len],
+     target[len] = target[rand],
+     target[rand] = tmp
+   }
+   return target;
+ };
+
+ /**
+  * 取随机项
+  * @param {Array}
+  * @return {All}
+  */
+ function random(target) {
+   return target[Math.floor(Math.random() * target.length)];
+ }
+
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
    + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');
@@ -435,7 +462,9 @@ define('lang',['frame'], function ($) {
  $.Array({
    contains: contains,
    removeAt: removeAt,
-   remove: remove
+   remove: remove,
+   shuffle: shuffle,
+   random: random
  });
 
   return $;

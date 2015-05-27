@@ -773,13 +773,21 @@ define('lang',['frame'], function ($) {
      + pad(this.getUTCSeconds()) + '.'
      + String((this.getUTCMilliseconds() / 1000).toFixed(3))
      .slice(2, 5) + 'z';
- }
+ };
 
+ /**
+  * 判断闰年
+  * @return {Boolean}
+  */
+ function isLeapYear() {
+   return new Date(this.getFullYear(), 2 ,0).getDate() == 29;
+ };
 
  //修复旧浏览器，扩展函数原型;
  methods(Date.prototype, {
    toISOString: toISOString,
-   toJSON: toISOString
+   toJSON: toISOString,
+   isLeapYear: isLeapYear
  });
 
  /**
@@ -829,12 +837,25 @@ define('lang',['frame'], function ($) {
    return new Date(date.getFullYear(), ~~(date.getMonth() / 3) * 3 + 3, 1);
  };
 
+ /**
+  * 获取当前月份天数
+  * @param {Date}
+  * @return {Number}
+  */
+ function getDaysInMonth(date) {
+   return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+ };
+
+ //添加$.Date的扩展
+ $.Date('isLeapYear');
+
  $.Date({
    getDatePeriod: getDatePeriod,
    getFirstDateInMonth: getFirstDateInMonth,
    getLastDateInMonth: getLastDateInMonth,
    getFirstDateInQuarter: getFirstDateInQuarter,
-   getLastDateInQuarter: getLastDateInQuarter
+   getLastDateInQuarter: getLastDateInQuarter,
+   getDaysInMonth: getDaysInMonth
  });
 
  return $;

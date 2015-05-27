@@ -14,6 +14,7 @@
 <script type="text/javascript" src="frame.js"></script>
 <script type="text/javascript">
   //example
+  /*
   require.config({
     alias:{
       'jquery': {
@@ -23,12 +24,17 @@
     }
   });
 
-  require('lang', function() {
+  require('lang', function(frame) {
     console.log('add lang.js');
   });
   
   require('brower', function(args) {
     console.log('add brower.js',args);
+  });
+  */
+  
+  require('event', function(frame) {
+    console.log('add event.js');
   });
 </script>
 

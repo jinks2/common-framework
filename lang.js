@@ -598,6 +598,24 @@ define('lang',['frame'], function ($) {
    return target;
  };
 
+ /**
+  * 返回数组中的最小值
+  * @param {Array} 数字数组
+  * @return {Number}
+  */
+ function min(target) {
+   return Math.min.apply(null, target);
+ };
+
+ /**
+  * 返回数组中的最大值
+  * @param {Array} 数字数组
+  * @return {Number}
+  */
+ function max(target) {
+   return Math.max.apply(null, target);
+ };
+
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
    + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');
@@ -616,7 +634,9 @@ define('lang',['frame'], function ($) {
    sortBy: sortBy,
    union: union,
    intersect: intersect,
-   diff: diff
+   diff: diff,
+   min: min,
+   max: max
  });
 
   return $;

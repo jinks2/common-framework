@@ -640,6 +640,7 @@ define('lang',['frame'], function ($) {
  //$.Array的原生方法
  $.Array('concat,join,pop,push,shift,unshift.slice,splice,sort,reverse,' 
    + 'indexOf,lastIndexOf,every,some,filter,reduce,reduceRight');
+
  //$.Array的新构建方法
  $.Array({
    contains: contains,
@@ -659,6 +660,63 @@ define('lang',['frame'], function ($) {
    min: min,
    max: max
  });
+ 
+ /**
+  * 特定范围内数值处理: 判断数组是否在某一闭区间内，如果不是，置换为离他最近的值
+  * @param {Number}
+  * @param {Number} 范围值之一
+  * @param {Number} 范围值之一
+  * @return {Number}
+  */
+ function limit(target, n1, n2) {
+   var a = [n1, n2].sort();
+   if(target < a[0])
+     target = a[0];
+   if(target > a[1])
+     target = a[1];
+   return target;
+ }
+
+ /**
+  * 取最近值: 获取某范围内离特定值最近的值
+  * @param {Number} 要计算的特定值
+  * @param {Number} 范围值之一
+  * @param {Number} 范围值之一
+  * @param {Number} 结果为两个范围值之一
+  */
+ function nearer(target, n1, n2) {
+   return Math.abs(target - n1) < Math.abs(target - n2) ? n1 : n2;
+ }
+
+ /**
+  * 按照指定小数位四舍五入
+  * @param {Number} 要处理的数值
+  * @param [Number] 小数位，默认0，负数忽略
+  * @return {Number}
+  */
+ function round(target, base) {
+   if(base && base >= 0) {
+     base = Math.pow(10, base);
+     return Math.round(target * base) / base;
+   } else {
+     return Math.round(target);
+   }
+ }
+
+ //$.Number的原生方法
+ $.Number('toFixed,toExponential,toPrecision');
+
+ //由于Math方法不是直接在Number原型上的，这里利用NumberPack
+ NumberPack = {
+   limit: limit,
+   nearer: nearer,
+   round: round
+ };
+ 'abs,acos,asin,atan,atan2,ceil,cos,exp,floor,log,pow,sin,sqrt,tan'.replace($.rword, function(name) {
+   NumberPack[name] = Math[name];
+ });
+ $.Number(NumberPack);
+    
 
   return $;
 });

@@ -783,11 +783,58 @@ define('lang',['frame'], function ($) {
  });
 
  /**
+  * 日期相差天数
+  * @param {Date}
+  * @param {Date}
+  * @return {Number} 相差的天数
   */
+ function getDatePeriod(start, end) {
+   return Math.abs(start * 1 - end * 1) / (60 * 60 * 1000 * 24);
+ };
  
+ /**
+  * 求日期所在月的第一天
+  * @param {Date}
+  * @return {Date}
+  */
+ function getFirstDateInMonth(date) {
+   return new Date(date.getFullYear(), date.getMonth(), 1);
+ };
+
+ /**
+  * 求日期所在月的最后一天
+  * @param {Date}
+  * @return {Date}
+  */
+ function getLastDateInMonth(date) {
+   //即下个月的第0天
+   return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+ };
+
+ /**
+  * 求日期所在季度的第一天
+  * @param {Date}
+  * @return {Date}
+  */
+ function getFirstDateInQuarter(date) {
+   return new Date(date.getFullYear(), ~~(date.getMonth() / 3) * 3, 1);
+ };
+
+ /**
+  * 求日期所在季度的最后一天
+  * @param {Date}
+  * @return {Date}
+  */
+ function getLastDateInQuarter(date) {
+   return new Date(date.getFullYear(), ~~(date.getMonth() / 3) * 3 + 3, 1);
+ };
 
  $.Date({
-
+   getDatePeriod: getDatePeriod,
+   getFirstDateInMonth: getFirstDateInMonth,
+   getLastDateInMonth: getLastDateInMonth,
+   getFirstDateInQuarter: getFirstDateInQuarter,
+   getLastDateInQuarter: getLastDateInQuarter
  });
 
  return $;

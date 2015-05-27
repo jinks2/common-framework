@@ -337,27 +337,60 @@ define('lang',['frame'], function ($) {
  };
 
  /**
-  * 数组的标准化修补方法
+  * 数组的标准化修补方法; 注意数字中的空数组是会过滤的
   * @param {String} 初始化的变量
-  * @param {String} 执行的函数
-  * @param {String} 返回结果
+  * @param {String} 要置换的函数体部分
+  * @param {String} 返回结果部分
   * @return {Function}
+  * @参考：http://www.w3cfuns.com/blog-5465813-5405446.html
   */
-  function iterator(vars, body, ret) {
-      var fun = 'for(var ' + vars + 'i=0,n = this.length;i < n;i++){' + body.replace('_', '((i in this) && fn.call(scope,this[i],i,this))') + '}' + ret
-      return Function("fn,scope", fun);
-  }
+ function iterator(vars, body, ret) {
+   var fun = 'for(var ' + vars + 'i=0,n = this.length;i < n;i++){' 
+   //fn为回调函数，scope为作用域
+   + body.replace('_', '((i in this) && fn.call(scope,this[i],i,this))') + '}' + ret
+   //参数和函数体
+   return Function('fn,scope', fun);
+ }
+
+ /**
+  * 数组reduce修补方法
+  * @param {Function} 回调函数
+  * @param [All] 可选第一个参数
+  * @param [Object|this] 作用域
+  */
+ function reduce(fn, lastResult, scope) {
+   if(this.length === 0)return lastResult;
+   var i = lastResult !== undefined ? 0 : 1;
+   var result = lastResult !== undefined ? lastResult : this[0];
+   for(var len = this.length; i < len; i++) {
+     result = fn.call(scope, result, this[i], i, this);
+   }
+   return result;
+ };
+
+ /**
+  * 数组reduceRight修补方法
+  * @param {Function} 回调函数
+  * @param [All] 可选第一个参数
+  * @param [Object|this] 作用域
+  */
+ function reduceRight(fn, lastResult, scope) {
+   var arr = this.contat().reverse();
+   return arr.reduce(fn, lastResult, scope);
+ };
   
  //修复旧浏览器，扩展数组原型;
-  methods(Array.prototype, {
+ methods(Array.prototype, {
     indexOf: indexOf,
     lastIndexOf: lastIndexOf,
     forEach: iterator('','_',''),
     filter: iterator('r=[],j=0,','if(_)r[j++]=this[i]','return r'),
     map: iterator('r=[],','r[i]=_','return r'),
     some: iterator('','if(_)return true','return false'),
-    every: iterator('','if(!_) return false','return true')
-  });
+    every: iterator('','if(!_) return false','return true'),
+    reduce: reduce,
+    reduceRight: reduceRight
+ });
 
  //$.Array的原生方法
  //

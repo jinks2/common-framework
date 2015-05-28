@@ -13,8 +13,8 @@ define('event',['frame'], function ($) {
    * @return {Boolean}
    */
   $.eventSupport = function(evenName, el) {
-  	//此方法只能检测元素节点对某种事件的支持，并且只能检测一般性的事件
-  	//对于像表单事件，需要传入input元素进行检测
+    //此方法只能检测元素节点对某种事件的支持，并且只能检测一般性的事件
+    //对于像表单事件，需要传入input元素进行检测
     el = el || $.html;
     evenName = 'on' + evenName;
     var ret = evenName in el;

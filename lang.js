@@ -857,6 +857,42 @@ define('lang',['frame'], function ($) {
    getLastDateInQuarter: getLastDateInQuarter,
    getDaysInMonth: getDaysInMonth
  });
+ 
+ //勉强模拟Object.defineProperty
+ if(typeof Object.defineProperty !== 'function') {
+   Object.defineProperty = function(obj, prop, desc) {
+     if('value' in desc)
+       obj[prop] = desc.value;
+     if('get' in desc)
+       obj._defineGetter_(prop, desc.get);
+     if('set' in desc)
+       obj._defineSetter_(prop, desc.set);
+     return obj;
+   }
+ };
+
+ //模拟Object.defineProperties
+ if(typeof Object.defineProperties !== 'function') {
+   Object.defineProperty = function(obj, descs) {
+     for(var porp in descs) {
+       if(descs.hasOwnProperty(prop))
+         Object.defineProperty(obj, prop, descs[prop]);
+     }
+     return obj;
+   }
+ };
+
+ //模拟Object.create
+ if(typeof Object.create !== 'function') {
+   Object.create = function(prototype, descs) {
+     function F(){};
+     F.prototype = prototype;
+     var obj = new F();
+     if(descs != null)
+       Object.defineProperties(obj, descs);
+     return obj;
+   }
+ };
 
  /**
   * 判断属性是否是自有的

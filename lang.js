@@ -37,7 +37,7 @@ define('lang',['frame'], function ($) {
   };
 
   //==========构建工具方法==========
-  'String,Array,Number,Object,Date'.replace($.rword, function(type) {
+  'String,Array,Number,Date,Object'.replace($.rword, function(type) {
     $[type] = function(pack) {
       //判断传入的事字符还是对象
       var isNative = typeof pack === 'string';
@@ -857,6 +857,43 @@ define('lang',['frame'], function ($) {
    getLastDateInQuarter: getLastDateInQuarter,
    getDaysInMonth: getDaysInMonth
  });
+
+ /**
+  * 判断属性是否是自有的
+  * @param {Object} 要判断的对象
+  * @param {String} 要判断的属性
+  * @return {Boolean}
+  */
+ function hasOwn(obj, key) {
+   return Object.prototype.hasOwnProperty.call(obj, key);
+ };
+
+ /**
+  * 添加配置属性
+  * @param {Object} 添加到的对象
+  * @param {String} 属性名
+  * @param {Object} 配置对象
+  * @return {Object}
+  */
+ function defineProperty(obj, key, desc) {
+   var d = Object.create(null);
+   d.configurable = hasOwn(desc, 'configurable');
+   d.enumerable = hasOwn(desc, 'enumerable');
+   if(hasOwn(desc, 'value')) {
+     d.writable = hasOwn(desc, 'writable');
+     d.value = desc.value; 
+   } else {
+     d.get = hasOwn(desc, 'get') ? desc.get : undefined;
+     d.set = hasOwn(desc, 'set') ? desc.set : undefined;
+   }
+   return Object.defineProperty(obj, key, d);
+ };
+ 
+ $.Object({
+   hasOwn: hasOwn,
+   defineProperty: defineProperty
+ })
+
 
  return $;
 });

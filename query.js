@@ -10,7 +10,7 @@ define('query', ['frame'], function($) {
    */
   function isXML(el) {
     var doc = el.ownerDocument || el;
-    return doc.createElement('p').nodeName === 'P';
+    return doc.createElement('p').nodeName !== doc.createElement('P').nodeName;  //xml区分大小写
   };
 
   /**
@@ -112,12 +112,14 @@ define('query', ['frame'], function($) {
       reg_quick = /^(^|[#.])((?:[-\w]|[^\x00-\xa0]|\\.)+)$/,
       reg_backslash = /\\/g, 
       reg_comma = /^\s*,\s*/,
-      reg_tag = /^((?:[-\w\*]|[^\x00-\xa0]|\\.)+)/; //能使用getElementsByTagName处理的CSS表达式
+      reg_tag = /^((?:[-\w\*]|[^\x00-\xa0]|\\.)+)/, //能使用getElementsByTagName处理的CSS表达式
+      trimLeft = /^\s+/,
+      trimRight = /\s+$/;
 
   /**
    * 节点数组化
    * @param {Node} 要处理的节点集合
-   * @param [Array] 上次的结果集
+   * @param [Array] 结果集
    * @param [Boolean] 是否出现并联选择器
    */
   function makeArray(nodes, result, flag_multi) {
@@ -143,9 +145,12 @@ define('query', ['frame'], function($) {
     result = result || [];
     contexts = contexts || DOC;
     var pushResult = makeArray;
-    if(!contexts.length) return result;
-    var context = !context.nodeType ? contexts : [];
-    contexts = pushResult(context);
+    if (!contexts.nodeType) { //区分是单个还是多个构成数组形式，实现对多上下文的支持
+      contexts = pushResult(contexts);
+      if (!contexts.length) return result
+    } else {
+      contexts = [contexts];
+    }
     //保存到本地作用域,用于切割并联选择器
     var rrelative = reg_combinator,
         rquick = reg_quick,
@@ -155,8 +160,18 @@ define('query', ['frame'], function($) {
         context = contexts[0],
         doc = context.ownerDocument || context,
         flag_all, uniqResult, elems, nodes, tagName, last, ri, uid;
+    expr = expr.replace(trimLeft, '').replace(trimRight, ''); //去处两边空格
+    flag_xml = flag_xml || isXML(doc);
+    console.log(isXML(doc));
+    if(flag_xml && expr === 'body' && context.body)  //xml
+      return pushResult([context.body], result, flag_multi);
+    if(!flag_xml && doc.querySelectorAll) {
+      console.log('test');
+      context = doc;
+      query = ".fix_icarus_sqa " + query; //IE8也要使用类名确保查找范围
+    }
+    
 
-   
     return elems;
   };
 

@@ -50,10 +50,70 @@ define('query', ['frame'], function($) {
         (a.sourceIndex < b.sourceIndex && 4) + (a.sourceIndex > b.sourceIndex && 2) : 1) : 0;
   };
 
+  /**
+   * 节点排序和去重
+   * @param {Array} 数组化之后的节点
+   * @return {Array} 节点排序和去重后的数组节点
+   */
+  function unique(nodes) {
+    if(nodes.length < 2)
+      return nodes;
+    var result = [], arr = [], uniqueResult = {}, sortOrder
+        node = nodes[0], index , i, ri = 0, len = nodes.length,
+        sourceIndex = typeof node.sourceIndex === 'number',
+        comapre = typeof node.compareDocumentPosition === 'function';
+    if(!sourceIndex && !comapre) { //旧版本IE的XML
+      var all = (node.ownerDocument || node).getElementsByTagName('*');
+      for(var index = 0; node = all[index]; index++) {
+        node.setAttribute('sourceIndex', index);
+      }
+      sourceIndex = true;
+    }
+    if(sourceIndex) { //IE, opera; 和上面处理之后
+      sortOrder = function(a, b) {
+        return a - b;
+      }
+
+      for(i = 0; i < len; i++) {
+        node = nodes[i];
+        index = (node.sourceIndex || node.getAttribute('sourceIndex')) + 1e8;
+        if(!uniqueResult[index]) { //去重
+          (arr[ri++] = new Number(index))._ = node;
+          uniqueResult[index] = 1; //!1 -> false
+        }
+      }
+      arr.sort(sortOrder); //排序
+      while(ri)
+        result[--ri] = arr[ri]._;
+      return result;
+    } else {
+      sortOrder = function(a, b) {
+        if(a === b) {
+          sortOrder.hasDuplicate = true; //标记，去重
+          return 0;
+        }
+        //实际上都是支持的
+        if(!a.compareDocumentPosition || !b.compareDocumentPosition)
+          return a.compareDocumentPosition ? -1 : 1;
+        return a.compareDocumentPosition(b) & 4 ? -1 : 1; //a在b之前，返回-1;
+      }
+      nodes.sort(sortOrder); //排序
+      if(sortOrder.hasDuplicate) { //去重
+        for(i = 1; i < nodes.length; i++) {
+          if(nodes[i] === nodes[i - 1])
+            nodes.splice(i--, 1);
+        }
+      }
+      sortOrder.hasDuplicate = false; //还原
+      return nodes;
+    }
+  };
+  
   $.mix({
     isXML: isXML,
     contains: contains,
-    comparePosition: comparePosition
+    comparePosition: comparePosition,
+    unique: unique
   });
 
   var Query = $.query = function() {

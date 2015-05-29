@@ -8,14 +8,15 @@
   var W3C = DOC.dispatchEvent; //IE9开始支持
   var html = DOC.documentElement;
   var head = DOC.head || DOC.getElementsByTagName('head')[0];
+  var rword = /[^, ]+/g;//切割字符串为一个个小块，以空格或豆号分开它们，结合replace实现字符串的forEach
+  var rmakeid = /(#.+|\W)/g; //用于处理掉href中的hash与所有特殊符号，生成长命名空间
   var NsKey = DOC.URL.replace(rmakeid, ""); //长命名空间（字符串）
   var NsVal = global[NsKey]; //长命名空间（mass对象）
   var moduleClass = "frame" + (new Date - 0);
   var hasOwn = Object.prototype.hasOwnProperty;
   var toStr = Object.prototype.toString;
   var basePath;
-  var rword = /[^, ]+/g;//切割字符串为一个个小块，以空格或豆号分开它们，结合replace实现字符串的forEach
-  var rmakeid = /(#.+|\W)/g; //用于处理掉href中的hash与所有特殊符号，生成长命名空间
+ 
   var Types = {
     '[object HTMLDocument]': 'Document',
     '[object HTMLCollection]': 'NodeList',

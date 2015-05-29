@@ -3,7 +3,7 @@
 ###说明：
 
 ####资源主要来自：
-* [司徒正没](https://github.com/RubyLouvre)的书籍[《JavaScript框架设计》](http://book.douban.com/subject/25858070/)
+* [司徒正美](https://github.com/RubyLouvre)的书籍[《JavaScript框架设计》](http://book.douban.com/subject/25858070/)
 * [You Don't Need jQuery](http://blog.garstasio.com/you-dont-need-jquery/)中提及的库
 
 * [jquery](https://github.com/jquery/jquery)源码

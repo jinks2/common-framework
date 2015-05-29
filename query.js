@@ -3,10 +3,9 @@
 //====================
 define('query', ['frame'], function($) {
   var global = this, DOC = global.document;
-
   /**
    * 判断是否是XML文档
-   * @param {Element} 传入任意一个文档节点
+   * @param {Node} 传入任意一个文档节点
    * @return {Boolean}
    */
   function isXML(el) {
@@ -16,8 +15,8 @@ define('query', ['frame'], function($) {
 
   /**
    * 判断节点是否包含
-   * @param {Element} 主节点
-   * @param {Element} 要判断的节点
+   * @param {Node} 主节点
+   * @param {Node} 要判断的节点
    * @param [Boolean] 允许直接判断是否相等
    * @return {Boolean}
    */
@@ -39,8 +38,8 @@ define('query', ['frame'], function($) {
   
   /**
    * 兼容旧版IE的节点位置判断
-   * @param {Element}
-   * @param {Element}
+   * @param {Node}
+   * @param {Node}
    * @return {Number} 结果与compareDocumentPosition返回的结果相同
    */
   function comparePosition(a, b) {
@@ -58,7 +57,7 @@ define('query', ['frame'], function($) {
   function unique(nodes) {
     if(nodes.length < 2)
       return nodes;
-    var result = [], arr = [], uniqueResult = {}, sortOrder
+    var result = [], arr = [], uniqueResult = {}, sortOrder,
         node = nodes[0], index , i, ri = 0, len = nodes.length,
         sourceIndex = typeof node.sourceIndex === 'number',
         comapre = typeof node.compareDocumentPosition === 'function';
@@ -69,14 +68,13 @@ define('query', ['frame'], function($) {
       }
       sourceIndex = true;
     }
-    if(sourceIndex) { //IE, opera; 和上面处理之后
+    if(sourceIndex) { //IE, opera; 和上面处理之后；使用sourceIndex排序 
       sortOrder = function(a, b) {
         return a - b;
       }
-
       for(i = 0; i < len; i++) {
         node = nodes[i];
-        index = (node.sourceIndex || node.getAttribute('sourceIndex')) + 1e8;
+        index = (node.sourceIndex || node.getAttribute('sourceIndex'));
         if(!uniqueResult[index]) { //去重
           (arr[ri++] = new Number(index))._ = node;
           uniqueResult[index] = 1; //!1 -> false
@@ -86,7 +84,7 @@ define('query', ['frame'], function($) {
       while(ri)
         result[--ri] = arr[ri]._;
       return result;
-    } else {
+    } else { //直接用compareDocumentPosition排序
       sortOrder = function(a, b) {
         if(a === b) {
           sortOrder.hasDuplicate = true; //标记，去重
@@ -108,16 +106,68 @@ define('query', ['frame'], function($) {
       return nodes;
     }
   };
-  
+
+//==========选择器系统==========
+  var reg_combinator = /^\s*([>+~,\s])\s*(\*|(?:[-\w*]|[^\x00-\xa0]|\\.)*)/,
+      reg_quick = /^(^|[#.])((?:[-\w]|[^\x00-\xa0]|\\.)+)$/,
+      reg_backslash = /\\/g, 
+      reg_comma = /^\s*,\s*/,
+      reg_tag = /^((?:[-\w\*]|[^\x00-\xa0]|\\.)+)/; //能使用getElementsByTagName处理的CSS表达式
+
+  /**
+   * 节点数组化
+   * @param {Node} 要处理的节点集合
+   * @param [Array] 上次的结果集
+   * @param [Boolean] 是否出现并联选择器
+   */
+  function makeArray(nodes, result, flag_multi) {
+    nodes = $.slice(nodes); //注意IE56789无法使用数组方法转换节点集合
+    //result ? result.push.apply(result, nodes) : (result = nodes);
+    result = result ? result.concat(nodes) : nodes;
+    return flag_multi ? unique(result) : result;
+  };
+
+
+  /**
+   * 选择器
+   * @param {String} CSS表达式
+   * @param [Node]   上下文
+   * @param [Array]  结果集(内部使用)
+   * @param [Array]  上次的结果集(内部使用)
+   * @param [Boolean] 是否为XML文档(内部使用)
+   * @param [Boolean] 是否出现并联选择器(内部使用)
+   * @param [Boolean] 是否出现通配符选择器(内部使用)
+   * @return {Array}
+   */
+  function Query(expr, contexts, result, lastResult, flag_xml, flag_multi, flag_dirty) {
+    result = result || [];
+    contexts = contexts || DOC;
+    var pushResult = makeArray;
+    if(!contexts.length) return result;
+    var context = !context.nodeType ? contexts : [];
+    contexts = pushResult(context);
+    //保存到本地作用域,用于切割并联选择器
+    var rrelative = reg_combinator,
+        rquick = reg_quick,
+        rBackslash = reg_backslash,
+        rcomma = reg_comma,
+        rtag = reg_tag,
+        context = contexts[0],
+        doc = context.ownerDocument || context,
+        flag_all, uniqResult, elems, nodes, tagName, last, ri, uid;
+
+   
+    return elems;
+  };
+
   $.mix({
     isXML: isXML,
     contains: contains,
     comparePosition: comparePosition,
-    unique: unique
+    unique: unique,
+    makeArray: makeArray,
+    query: Query
   });
 
-  var Query = $.query = function() {
-
-  };
   return Query;
 });

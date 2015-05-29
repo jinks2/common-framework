@@ -1,3 +1,6 @@
+//====================
+//语言模块
+//====================
 define('lang',['frame'], function ($) {
   var global = this, defineProperty = Object.defineProperty,
       IndexOf = String.prototype.indexOf;

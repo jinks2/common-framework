@@ -1,3 +1,6 @@
+//====================
+//事件模块
+//====================
 define('event',['frame'], function ($) {
   var facade = $.event = {
     special: {
